@@ -24,10 +24,21 @@ export async function withTenant<T>(db: Database, organizationId: string, fn: (t
 }
 
 /** Contexto de utilizador (sem organização): lista as organizações a que pertence. */
-export async function withUser<T>(db: Database, userId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+export async function withUser<T>(
+  db: Database,
+  userId: string,
+  fn: (tx: Tx) => Promise<T>,
+  opts: { email?: string } = {},
+): Promise<T> {
   return db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL ROLE bigstock_app`);
     await tx.execute(sql`SELECT set_config('app.user_id', ${userId}, true)`);
+    if (opts.email) await tx.execute(sql`SELECT set_config('app.user_email', ${opts.email}, true)`);
     return fn(tx);
   });
+}
+
+/** Dentro de uma transação já autenticada, passa a operar na organização indicada (após validação na app). */
+export async function enterTenant(tx: Tx, organizationId: string): Promise<void> {
+  await tx.execute(sql`SELECT set_config('app.organization_id', ${organizationId}, true)`);
 }

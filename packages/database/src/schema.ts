@@ -102,3 +102,21 @@ export const auditEvents = pgTable(
   },
   (t) => [index("audit_events_org_idx").on(t.organizationId, t.createdAt)],
 );
+
+/** Convites para uma organização. O token só existe em claro no momento da criação. */
+export const invitations = pgTable(
+  "invitations",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    email: text("email").notNull(),
+    role: text("role", { enum: ["admin", "member", "billing"] }).notNull(),
+    tokenHash: text("token_hash").notNull().unique(),
+    invitedBy: uuid("invited_by").notNull().references(() => users.id),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("invitations_org_idx").on(t.organizationId), index("invitations_email_idx").on(t.email)],
+);

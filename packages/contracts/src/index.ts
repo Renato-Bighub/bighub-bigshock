@@ -65,3 +65,4 @@ export const meResponse = z.object({
   request_id: z.string(),
 });
 export type MeResponse = z.infer<typeof meResponse>;
+export * from "./permissions";
