@@ -13,7 +13,7 @@ export class OpenAiImageProvider implements ImageProvider {
 
   constructor(
     private readonly apiKey: string,
-    model = "gpt-image-1",
+    model = "gpt-image-2",
     private readonly baseUrl = "https://api.openai.com/v1",
     private readonly fetchImpl: typeof fetch = fetch,
   ) {

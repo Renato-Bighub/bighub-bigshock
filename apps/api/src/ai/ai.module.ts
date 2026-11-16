@@ -15,7 +15,7 @@ export function createImageProviderFromEnv(): ImageProvider {
   const choice = process.env.AI_PROVIDER ?? (process.env.NODE_ENV === "production" ? "" : "fake");
   if (choice === "openai") {
     const key = process.env.OPENAI_API_KEY;
-    return key ? new OpenAiImageProvider(key, process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1") : new DisabledImageProvider();
+    return key ? new OpenAiImageProvider(key, process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-2") : new DisabledImageProvider();
   }
   if (choice === "fake") return new FakeImageProvider();
   return new DisabledImageProvider();
