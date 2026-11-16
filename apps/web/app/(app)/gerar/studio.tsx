@@ -182,14 +182,21 @@ export function Studio({ orgId, initialCredits, recent }: { orgId: string; initi
             <label className="block"><span className="mb-1 block text-sm font-semibold">Tipo de logótipo</span>
               <select value={logoType} onChange={(e) => setLogoType(e.target.value as typeof logoType)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{LOGO_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>
             <fieldset>
-              <legend className="mb-1 text-sm font-semibold">Cores <span className="font-normal text-nav/50">(até 3; vazio = a IA escolhe)</span></legend>
+              <legend className="mb-1 text-sm font-semibold">Cores <span className="font-normal text-nav/50">(até 3; clique numa cor para ajustar; vazio = a IA escolhe)</span></legend>
               <div className="flex flex-wrap items-center gap-2">
-                {COLOR_PRESETS.map((c) => {
-                  const on = colors.includes(c);
-                  return (
-                    <button key={c} type="button" aria-pressed={on} aria-label={`Cor ${c}`} onClick={() => setColors((cur) => (on ? cur.filter((x) => x !== c) : cur.length >= 3 ? cur : [...cur, c]))} className={`h-8 w-8 rounded-full border-2 transition ${on ? "scale-110 border-nav" : "border-white ring-1 ring-nav/15"}`} style={{ backgroundColor: c }} />
-                  );
-                })}
+                {colors.map((c, i) => (
+                  <label key={i} className="relative h-8 w-8 cursor-pointer overflow-hidden rounded-full border-2 border-nav ring-1 ring-nav/15" style={{ backgroundColor: c }} title={`${c.toUpperCase()} · clique para escolher outra cor`}>
+                    <input type="color" aria-label={`Escolher cor ${i + 1}`} value={c} onChange={(e) => setColors((cur) => cur.map((x, j) => (j === i ? e.target.value.toUpperCase() : x)))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                  </label>
+                ))}
+                {colors.length < 3 && (
+                  <>
+                    {COLOR_PRESETS.map((c) => (
+                      <button key={c} type="button" aria-label={`Adicionar ${c}`} onClick={() => setColors((cur) => (cur.includes(c) ? cur : [...cur, c]))} className="h-6 w-6 rounded-full border-2 border-white ring-1 ring-nav/15 transition hover:scale-110" style={{ backgroundColor: c }} />
+                    ))}
+                    <button type="button" onClick={() => setColors((cur) => [...cur, "#E4072D"])} className="rounded-full border border-dashed border-nav/30 px-2.5 py-1 text-xs font-bold text-nav/70 hover:border-brand hover:text-brand">+ Cor personalizada</button>
+                  </>
+                )}
                 {colors.length > 0 && <button type="button" onClick={() => setColors([])} className="text-xs font-bold text-nav/60 underline">Limpar</button>}
               </div>
             </fieldset>
