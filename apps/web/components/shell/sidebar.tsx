@@ -13,13 +13,13 @@ const NAV = [
   { href: "/favoritos", label: "Favoritos", icon: Heart },
   { href: "/downloads", label: "Downloads", icon: Download },
   { href: "/historico", label: "Histórico de Geração", icon: History },
-  { href: "/api", label: "Integração via API", icon: Code2 },
+  { href: "/integracao", label: "Integração via API", icon: Code2 },
   { href: "/planos", label: "Planos e Créditos", icon: Layers3 },
   { href: "/equipa", label: "Equipa", icon: Users },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 // Só os módulos já implementados estão ativos nesta fase; os restantes módulos chegam com as fases seguintes.
-const AVAILABLE = new Set(["/dashboard", "/explorar", "/gerar", "/downloads", "/historico", "/planos", "/equipa"]);
+const AVAILABLE = new Set(["/dashboard", "/explorar", "/gerar", "/downloads", "/historico", "/integracao", "/planos", "/equipa"]);
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();

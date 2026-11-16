@@ -70,6 +70,14 @@ Conformidade (AI Act art. 50): cada geração regista fornecedor e modelo em `ai
 (`DigitalSourceType = trainedAlgorithmicMedia`) + `tEXt` (`AIGenerated`, `AIProvider`, `AIModel`, `AIJobId`). **Não é uma assinatura C2PA.**
 A interface sinaliza "Gerado por IA". Imagens geradas são privadas da organização e nunca entram no catálogo.
 
+## API pública
+
+Documentação: `https://<web>/docs` (Redoc) e especificação em `https://<api>/v1/openapi.json`.
+Chaves `bk_live_…` criadas em **Integração via API** (proprietários/administradores; plano Business ou API Platform).
+Limite por minuto por chave e quota mensal por organização usam contadores em PostgreSQL (funcionam entre instâncias serverless, sem Redis);
+cada pedido faz 2 escritas de contador. A autenticação da chave é guardada em cache 15 s por instância, por isso revogar ou fazer downgrade
+pode demorar até 15 s a valer em todas as instâncias. Não há SDK ainda (V1.1).
+
 ## Primeiro deploy
 
 1. Crie o banco e um papel de aplicação sem superuser; guarde o URL direto como secret `DATABASE_URL_MIGRATE`
