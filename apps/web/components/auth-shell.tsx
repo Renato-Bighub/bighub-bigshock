@@ -1,4 +1,12 @@
 import Link from "next/link";
+import { GridMotion } from "./grid-motion";
+
+// Miniaturas do catálogo demonstrativo (ver public/images/README.md). Substituir por ativos com direitos verificados.
+const GRID_IMAGES = [
+  "category-business", "fresh-coast", "category-people", "gallery-architecture", "category-nature", "fresh-barista", "category-technology",
+  "gallery-lifestyle", "fresh-city", "category-food", "gallery-nature", "fresh-energy", "category-travel", "gallery-business",
+  "fresh-vineyard", "gallery-logistics", "fresh-office", "gallery-ecommerce", "hero-city", "studio-office", "hero-logistics",
+].map((n) => `/images/${n}.jpg`);
 
 export function Brand({ dark = false }: { dark?: boolean }) {
   return (
@@ -17,13 +25,16 @@ export function AuthShell({ title, subtitle, children, footer }: {
 }) {
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      <section className="hidden flex-col justify-between bg-nav p-12 text-white lg:flex">
-        <Brand dark />
-        <div>
-          <h2 className="text-4xl font-extrabold leading-tight">Milhões de imagens profissionais para os seus projetos.</h2>
-          <p className="mt-4 max-w-md text-white/70">Fotos, vetores e imagens geradas por IA, com licença segura e comercial.</p>
+      <section className="relative hidden flex-col justify-between overflow-hidden bg-nav p-12 text-white lg:flex">
+        <GridMotion images={GRID_IMAGES} className="absolute inset-0 opacity-90" />
+        {/* Véu para manter o texto legível sobre as imagens */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(11,16,21,.55)_0%,rgba(11,16,21,.88)_75%),linear-gradient(to_bottom,rgba(11,16,21,.85),rgba(11,16,21,.35)_45%,rgba(11,16,21,.9))]" />
+        <div className="relative z-10"><Brand dark /></div>
+        <div className="relative z-10">
+          <h2 className="text-4xl font-extrabold leading-tight [text-shadow:0_2px_12px_rgba(0,0,0,.6)]">Milhões de imagens profissionais para os seus projetos.</h2>
+          <p className="mt-4 max-w-md text-white/80 [text-shadow:0_1px_8px_rgba(0,0,0,.6)]">Fotos, vetores e imagens geradas por IA, com licença segura e comercial.</p>
         </div>
-        <p className="text-sm text-white/50">Plataforma europeia · RGPD · EUR</p>
+        <p className="relative z-10 text-sm text-white/60">Plataforma europeia · RGPD · EUR</p>
       </section>
       <section className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
