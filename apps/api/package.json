@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "seed:catalog": "node dist/seed-catalog.js",
+    "seed:folder": "node --env-file-if-exists=../../.env dist/seed-folder.js",
     "build:vercel": "tsc -p tsconfig.build.json && node scripts-bundle.mjs"
   },
   "dependencies": {
