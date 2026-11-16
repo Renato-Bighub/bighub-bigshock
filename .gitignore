@@ -12,3 +12,6 @@ coverage
 apps/web/public/images/*
 !apps/web/public/images/README.md
 .storage
+
+dist-bundle
+.vercel

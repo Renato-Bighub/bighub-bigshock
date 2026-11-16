@@ -126,7 +126,10 @@ export class LicensingService {
     return { url: `/v1/downloads/${token}`, expires_at: expiresAt.toISOString() };
   }
 
-  async redeem(token: string, requestId: string) {
+  async redeem(
+    token: string,
+    requestId: string,
+  ): Promise<{ redirectUrl: string } | { body: Buffer; contentType: string; filename: string }> {
     const claims = verifyDownload(token);
     if (!claims) throw new NotFoundException({ code: "invalid_download_link", message: "Download link is invalid or expired" });
     const row = await withTenant(this.db, claims.o, async (tx) => {
@@ -146,6 +149,10 @@ export class LicensingService {
     if (!row?.originalKey || !row.originalContentType) throw new NotFoundException({ code: "not_found", message: "File not found" });
     const ext = row.originalContentType === "image/png" ? "png" : row.originalContentType === "image/webp" ? "webp" : "jpg";
     const slug = row.title.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "imagem";
-    return { body: await this.storage.get(row.originalKey), contentType: row.originalContentType, filename: `${slug}.${ext}` };
+    const filename = `${slug}.${ext}`;
+    // Com S3/R2: redireciona para um URL assinado de 60 s (funciona com ficheiros grandes em serverless).
+    const redirectUrl = await this.storage.signedDownloadUrl(row.originalKey, { filename, contentType: row.originalContentType });
+    if (redirectUrl) return { redirectUrl };
+    return { body: await this.storage.get(row.originalKey), contentType: row.originalContentType, filename };
   }
 }

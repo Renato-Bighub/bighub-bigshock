@@ -1,0 +1,24 @@
+name: Migrate database
+# Aplica as migrações aditivas. Manual: corra antes de promover um deploy que as inclua.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente (secrets DATABASE_URL_MIGRATE do GitHub Environment)"
+        required: true
+        default: production
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @bigstock/contracts build && pnpm --filter @bigstock/database build
+      - run: pnpm --filter @bigstock/database db:migrate
+        env:
+          # URL DIRETO (não "pooled") com um papel que pode criar tabelas/triggers/roles
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}

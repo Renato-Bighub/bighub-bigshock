@@ -64,6 +64,11 @@ export class LicensingController {
   @Get("downloads/:token")
   async redeem(@Param("token") token: string, @Req() req: OrgRequest, @Res() res: Response) {
     const f = await this.licensing.redeem(token, String(req.id));
+    if ("redirectUrl" in f) {
+      res.setHeader("Cache-Control", "private, no-store");
+      res.redirect(302, f.redirectUrl);
+      return;
+    }
     res.setHeader("Content-Disposition", `attachment; filename="${f.filename}"`);
     res.setHeader("Cache-Control", "private, no-store");
     res.type(f.contentType).send(f.body);

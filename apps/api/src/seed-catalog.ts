@@ -62,9 +62,9 @@ async function main() {
       .values({ title: d.title, kind: "photo", categorySlug: d.category, tags: d.tags, width: 2400, height: 1600 })
       .returning();
     const key = `previews/${a!.id}.${EXT[type]}`;
-    await storage.put(key, data);
+    await storage.put(key, data, type);
     const originalKey = `originals/${a!.id}.${EXT[type]}`;
-    await storage.put(originalKey, data); // dev: o "original" é o mesmo ficheiro do preview
+    await storage.put(originalKey, data, type); // dev: o "original" é o mesmo ficheiro do preview
     await db.insert(rightsRecords).values({
       assetId: a!.id,
       rightsHolder: "DEV-SEED (sem direitos reais)",

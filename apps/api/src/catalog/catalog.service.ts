@@ -138,7 +138,7 @@ export class CatalogService {
     const type = sniffImage(data);
     if (!type) throw new BadRequestException({ code: "invalid_image", message: "Preview must be JPEG, PNG or WebP" });
     const key = `previews/${a.id}-${randomUUID()}.${EXT[type]}`;
-    await this.storage.put(key, data);
+    await this.storage.put(key, data, type);
     await this.db.update(assets).set({ previewKey: key, previewContentType: type }).where(eq(assets.id, id));
     await this.audit(actorId, "asset.preview", id, requestId);
   }
@@ -148,7 +148,7 @@ export class CatalogService {
     const type = sniffImage(data);
     if (!type) throw new BadRequestException({ code: "invalid_image", message: "Original must be JPEG, PNG or WebP" });
     const key = `originals/${a.id}-${randomUUID()}.${EXT[type]}`;
-    await this.storage.put(key, data);
+    await this.storage.put(key, data, type);
     await this.db
       .update(assets)
       .set({ originalKey: key, originalContentType: type, originalBytes: data.length })

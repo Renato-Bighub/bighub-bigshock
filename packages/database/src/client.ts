@@ -4,7 +4,14 @@ import { Pool } from "pg";
 import * as schema from "./schema";
 
 export function createDb(connectionString: string) {
-  const pool = new Pool({ connectionString });
+  // Serverless (Vercel): poucas ligações por instância e idle curto; use o URL "pooled" do fornecedor
+  // (PgBouncer em modo transação funciona: SET LOCAL ROLE/set_config vivem dentro da transação).
+  const pool = new Pool({
+    connectionString,
+    max: Number(process.env.DB_POOL_MAX ?? (process.env.VERCEL ? 3 : 10)),
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
+  });
   return { db: drizzle(pool, { schema }), pool };
 }
 export type Database = ReturnType<typeof createDb>["db"];
