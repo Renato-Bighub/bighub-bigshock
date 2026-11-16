@@ -12,7 +12,7 @@ let cached: Promise<Handler> | undefined;
 /** Arranca o Nest uma vez por instância da função e reutiliza-o entre invocações. */
 function boot(): Promise<Handler> {
   cached ??= (async () => {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true, rawBody: true });
     app.useLogger(app.get(Logger));
     configureApp(app);
     await app.init();
