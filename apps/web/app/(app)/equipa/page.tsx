@@ -1,6 +1,7 @@
 import { can, type Role } from "@bigstock/contracts";
 import { get, getActiveOrg } from "@/lib/server-api";
 import { TeamManager, type Invitation, type Member } from "./team-manager";
+import { T } from "@/components/i18n/provider";
 
 export default async function TeamPage() {
   const { me, org } = await getActiveOrg();
@@ -12,8 +13,8 @@ export default async function TeamPage() {
   ]);
   return (
     <div className="mx-auto max-w-4xl px-[19px] pt-[18px] pb-[30px]">
-      <h1 className="text-2xl font-extrabold">Equipa</h1>
-      <p className="mt-1 mb-6 text-sm text-nav/60">Gestão de membros e convites de {org.name}.</p>
+      <h1 className="text-2xl font-extrabold"><T>Equipa</T></h1>
+      <p className="mt-1 mb-6 text-sm text-nav/60"><T>Gestão de membros e convites de</T> {org.name}.</p>
       <TeamManager
         orgId={org.id}
         myUserId={me.user.id}

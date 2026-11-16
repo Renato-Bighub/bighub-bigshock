@@ -8,6 +8,7 @@ import { useState } from "react";
 import { CollectionPicker } from "@/components/library/collection-picker";
 import { FavoriteButton } from "@/components/library/favorite-button";
 import { api, apiGet, errorMessage } from "@/lib/api";
+import { T, useT } from "@/components/i18n/provider";
 
 export interface Category { slug: string; namePt: string; nameEn: string }
 
@@ -17,6 +18,7 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
   q: string; category: string; categories: Category[]; initial: AssetDto[]; nextCursor: string | null;
   orgId: string | null; canLicense: boolean; terms: Terms | null; favoriteIds: string[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [items, setItems] = useState(initial);
   const [cursor, setCursor] = useState(nextCursor);
@@ -77,30 +79,30 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
 
   return (
     <div className="mx-auto max-w-[1880px] px-[19px] pt-[18px] pb-[30px]">
-      <h1 className="text-2xl font-extrabold">Explorar imagens</h1>
+      <h1 className="text-2xl font-extrabold"><T>Explorar imagens</T></h1>
       <form
         role="search"
         onSubmit={(e) => { e.preventDefault(); router.push(href({ q: String(new FormData(e.currentTarget).get("q") ?? "").trim() })); }}
         className="mt-4 flex h-12 max-w-2xl overflow-hidden rounded-[9px] border border-nav/15 bg-white"
       >
-        <input name="q" defaultValue={q} aria-label="Pesquisar" placeholder="Pesquisar em português ou inglês…" className="min-w-0 flex-1 px-4 text-sm outline-0" />
-        <button className="flex w-14 items-center justify-center bg-brand text-white hover:bg-[#bd0024]" aria-label="Pesquisar"><Search size={20} /></button>
+        <input name="q" defaultValue={q} aria-label={t("Pesquisar")} placeholder={t("Pesquisar em português ou inglês…")} className="min-w-0 flex-1 px-4 text-sm outline-0" />
+        <button className="flex w-14 items-center justify-center bg-brand text-white hover:bg-[#bd0024]" aria-label={t("Pesquisar")}><Search size={20} /></button>
       </form>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {[{ slug: "", namePt: "Todas" }, ...categories].map((c) => (
+        {[{ slug: "", namePt: "Todas", nameEn: "All" }, ...categories].map((c) => (
           <Link
             key={c.slug || "all"}
             href={href({ category: c.slug })}
             className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${category === c.slug ? "border-brand bg-brand text-white" : "border-nav/20 bg-white hover:border-brand"}`}
           >
-            {c.namePt}
+            {t(c.namePt)}
           </Link>
         ))}
       </div>
 
       {items.length === 0 ? (
-        <p className="mt-10 text-nav/60">Nenhuma imagem encontrada{q ? ` para “${q}”` : ""}.</p>
+        <p className="mt-10 text-nav/60"><T>Nenhuma imagem encontrada</T>{q ? ` ${t("para “{q}”", { q })}` : ""}.</p>
       ) : (
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
           {items.map((a) => (
@@ -122,7 +124,7 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
       {cursor && (
         <div className="mt-8 text-center">
           <button onClick={loadMore} disabled={loading} className="rounded-lg border border-nav/20 bg-white px-6 py-2.5 text-sm font-bold hover:border-brand disabled:opacity-60">
-            {loading ? "A carregar…" : "Carregar mais"}
+            {loading ? t("A carregar…") : t("Carregar mais")}
           </button>
         </div>
       )}
@@ -133,24 +135,24 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <div className="flex min-h-64 items-center justify-center bg-nav"><img src={`/api${selected.preview_url}`} alt={selected.title} className="max-h-[80vh] w-full object-contain" /></div>
             <div className="relative p-6">
-              <button aria-label="Fechar" onClick={() => setSelected(null)} className="absolute top-3 right-3 rounded-lg p-2 hover:bg-surface"><X size={20} /></button>
+              <button aria-label={t("Fechar")} onClick={() => setSelected(null)} className="absolute top-3 right-3 rounded-lg p-2 hover:bg-surface"><X size={20} /></button>
               <h2 className="pr-8 text-xl font-extrabold">{selected.title}</h2>
               {selected.description && <p className="mt-2 text-sm text-nav/70">{selected.description}</p>}
               <dl className="mt-4 space-y-1 text-sm">
-                <div className="flex gap-2"><dt className="font-semibold">Dimensões:</dt><dd>{selected.width} × {selected.height}</dd></div>
-                <div className="flex gap-2"><dt className="font-semibold">Categoria:</dt><dd>{categories.find((c) => c.slug === selected.category)?.namePt ?? selected.category}</dd></div>
+                <div className="flex gap-2"><dt className="font-semibold"><T>Dimensões:</T></dt><dd>{selected.width} × {selected.height}</dd></div>
+                <div className="flex gap-2"><dt className="font-semibold"><T>Categoria:</T></dt><dd>{categories.find((c) => c.slug === selected.category)?.namePt ?? selected.category}</dd></div>
               </dl>
               <div className="mt-3 flex flex-wrap gap-1.5">{selected.tags.map((t) => <span key={t} className="rounded-full bg-surface px-2.5 py-1 text-xs">{t}</span>)}</div>
               {terms && (
                 <details className="mt-4 rounded-lg border border-nav/15 p-3 text-xs text-nav/70">
-                  <summary className="cursor-pointer font-semibold text-nav">{terms.title} · versão {terms.version}</summary>
+                  <summary className="cursor-pointer font-semibold text-nav">{terms.title} <T>· versão</T> {terms.version}</summary>
                   <p className="mt-2 leading-relaxed">{terms.summary}</p>
                 </details>
               )}
               {orgId && canLicense && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   <FavoriteButton orgId={orgId} assetId={selected.id} favorited={favs.has(selected.id)} onChange={(on) => setFav(selected.id, on)} onError={setLicenseError} label className="border border-nav/20 bg-white px-3.5 py-2 hover:border-brand" />
-                  <button type="button" onClick={() => setPickerOpen((o) => !o)} aria-expanded={pickerOpen} className="flex items-center gap-1.5 rounded-full border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold hover:border-brand"><FolderPlus size={16} /> Guardar em coleção</button>
+                  <button type="button" onClick={() => setPickerOpen((o) => !o)} aria-expanded={pickerOpen} className="flex items-center gap-1.5 rounded-full border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold hover:border-brand"><FolderPlus size={16} /> <T>Guardar em coleção</T></button>
                 </div>
               )}
               {orgId && canLicense && pickerOpen && <CollectionPicker orgId={orgId} assetId={selected.id} onClose={() => setPickerOpen(false)} />}
@@ -158,12 +160,12 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
               <button
                 disabled={!canLicense || licensing}
                 onClick={() => licenseAndDownload(selected)}
-                title={canLicense ? undefined : "O seu papel não permite licenciar"}
+                title={canLicense ? undefined : t("O seu papel não permite licenciar")}
                 className="mt-4 w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-[#bd0024] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {licensing ? "A processar…" : "Licenciar e descarregar"}
+                {licensing ? t("A processar…") : t("Licenciar e descarregar")}
               </button>
-              <p className="mt-2 text-center text-[11px] text-nav/50">Ao licenciar, aceita os termos acima.</p>
+              <p className="mt-2 text-center text-[11px] text-nav/50"><T>Ao licenciar, aceita os termos acima.</T></p>
             </div>
           </div>
         </div>

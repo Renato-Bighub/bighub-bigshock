@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/components/i18n/provider";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { api, errorMessage } from "@/lib/api";
@@ -9,6 +10,7 @@ export function FavoriteButton({ orgId, assetId, favorited, onChange, onError, c
   orgId: string; assetId: string; favorited: boolean; onChange: (next: boolean) => void; onError?: (message: string) => void; className?: string; label?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
+  const t = useT();
   async function toggle() {
     if (busy) return;
     const next = !favorited;
@@ -28,11 +30,11 @@ export function FavoriteButton({ orgId, assetId, favorited, onChange, onError, c
       type="button"
       onClick={toggle}
       aria-pressed={favorited}
-      aria-label={favorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+      aria-label={favorited ? t("Remover dos favoritos") : t("Adicionar aos favoritos")}
       className={`flex items-center gap-1.5 rounded-full transition ${className}`}
     >
       <Heart size={18} className={favorited ? "fill-brand text-brand" : ""} />
-      {label && <span className="text-sm font-bold">{favorited ? "Favorito" : "Favoritar"}</span>}
+      {label && <span className="text-sm font-bold">{favorited ? t("Favorito") : t("Favoritar")}</span>}
     </button>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitButton } from "@/components/auth-shell";
 import { api, errorMessage } from "@/lib/api";
+import { T } from "@/components/i18n/provider";
 
 export function AcceptForm({ token }: { token: string }) {
   const router = useRouter();
@@ -27,7 +28,7 @@ export function AcceptForm({ token }: { token: string }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {error && <p role="alert" className="rounded-lg bg-brand/10 px-3 py-2 text-sm text-brand">{error}</p>}
-      <SubmitButton pending={pending}>Aceitar convite</SubmitButton>
+      <SubmitButton pending={pending}><T>Aceitar convite</T></SubmitButton>
     </form>
   );
 }

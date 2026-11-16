@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { get, getActiveOrg } from "@/lib/server-api";
 import { CollectionDetail } from "./collection-detail";
+import { T } from "@/components/i18n/provider";
 
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,7 +19,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
   const canManage = canWrite && (col.data.created_by === me.user.id || org.role === "owner" || org.role === "admin");
   return (
     <div className="mx-auto max-w-[1880px] px-[19px] pt-[18px] pb-[30px]">
-      <Link href="/colecoes" className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-nav/60 hover:text-brand"><ChevronLeft size={16} /> Coleções</Link>
+      <Link href="/colecoes" className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-nav/60 hover:text-brand"><ChevronLeft size={16} /> <T>Coleções</T></Link>
       <CollectionDetail orgId={org.id} canWrite={canWrite} canManage={canManage} collection={col.data} initial={items?.data ?? []} nextCursor={items?.pagination.next_cursor ?? null} />
     </div>
   );

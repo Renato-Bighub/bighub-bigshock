@@ -1,3 +1,5 @@
+import { rt } from "@/lib/i18n/runtime";
+
 export class ApiError extends Error {
   constructor(readonly status: number, readonly code: string, message: string) {
     super(message);
@@ -39,7 +41,7 @@ const MESSAGES: Record<string, string> = {
 export const codeMessage = (code: string | null | undefined) => (code ? (MESSAGES[code] ?? code) : "");
 
 export const errorMessage = (e: unknown) =>
-  e instanceof ApiError ? (MESSAGES[e.code] ?? e.message) : "Não foi possível contactar o servidor.";
+  rt(e instanceof ApiError ? (MESSAGES[e.code] ?? e.message) : "Não foi possível contactar o servidor.");
 
 export async function api<T = unknown>(
   path: string,

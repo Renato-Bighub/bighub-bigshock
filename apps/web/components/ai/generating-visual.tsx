@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { T, useT } from "@/components/i18n/provider";
 
 const MESSAGES = {
   image: [
@@ -22,13 +23,14 @@ const MESSAGES = {
 
 /** Estado de espera animado: mostra progresso percebido e mensagens rotativas enquanto a IA trabalha. */
 export function GeneratingVisual({ mode, queued }: { mode: "image" | "logo"; queued?: boolean }) {
+  const t = useT();
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(timer);
   }, []);
   const msgs = MESSAGES[mode];
-  const msg = queued && elapsed < 4 ? "Pedido na fila…" : msgs[Math.floor(elapsed / 3) % msgs.length]!;
+  const msg = t(queued && elapsed < 4 ? "Pedido na fila…" : msgs[Math.floor(elapsed / 3) % msgs.length]!);
   // Progresso percebido: aproxima-se de 92% sem nunca chegar a 100% até o resultado existir.
   const pct = Math.round(92 * (1 - Math.exp(-elapsed / 22)));
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0"), ss = String(elapsed % 60).padStart(2, "0");
@@ -44,7 +46,7 @@ export function GeneratingVisual({ mode, queued }: { mode: "image" | "logo"; que
       </div>
 
       <p key={msg} className="relative px-6 text-center text-sm font-semibold text-white" style={{ animation: "bs-fade .5s ease both" }}>{msg}</p>
-      <p className="relative mt-1 text-xs text-white/50">{mm}:{ss} · normalmente demora cerca de 30 a 60 segundos</p>
+      <p className="relative mt-1 text-xs text-white/50">{mm}:{ss} <T>· normalmente demora cerca de 30 a 60 segundos</T></p>
 
       <div className="relative mt-5 h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
         <div className="h-full rounded-full bg-gradient-to-r from-brand to-[#ff7a45] transition-[width] duration-1000" style={{ width: `${Math.max(pct, 4)}%` }} />

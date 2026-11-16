@@ -4,6 +4,7 @@ import { Code2, Download, Folder, Heart, History, Home, Layers3, LifeBuoy, Searc
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./brand";
+import { T, useT } from "@/components/i18n/provider";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -22,6 +23,7 @@ const NAV = [
 const AVAILABLE = new Set(["/dashboard", "/explorar", "/gerar", "/colecoes", "/favoritos", "/downloads", "/historico", "/integracao", "/planos", "/equipa", "/configuracoes"]);
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
   const pathname = usePathname();
   return (
     <aside
@@ -29,23 +31,23 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     >
       <div className="flex min-h-[83px] items-center justify-between px-7 pt-0.5 pb-7">
         <Logo />
-        <button aria-label="Fechar menu" onClick={onClose} className="rounded-lg p-2 hover:bg-white/10 lg:hidden">
+        <button aria-label={t("Fechar menu")} onClick={onClose} className="rounded-lg p-2 hover:bg-white/10 lg:hidden">
           <X size={23} />
         </button>
       </div>
-      <nav aria-label="Menu principal" className="flex flex-col gap-[3px]">
+      <nav aria-label={t("Menu principal")} className="flex flex-col gap-[3px]">
         {NAV.map(({ href, label, icon: Icon, tag }) => {
           const base = "relative flex min-h-12 w-full items-center gap-[17px] rounded-[10px] px-[18px] py-3 text-left text-sm font-semibold transition";
           const content = (
             <>
               <Icon size={22} strokeWidth={1.95} className="shrink-0" />
-              <span>{label}</span>
-              {tag && <small className="ml-auto rounded-[7px] bg-[#e8002c] px-2 py-[3px] text-[11px] font-bold">{tag}</small>}
+              <span>{t(label)}</span>
+              {tag && <small className="ml-auto rounded-[7px] bg-[#e8002c] px-2 py-[3px] text-[11px] font-bold">{t(tag)}</small>}
             </>
           );
           if (!AVAILABLE.has(href)) {
             return (
-              <span key={href} aria-disabled="true" title="Disponível em breve" className={`${base} cursor-not-allowed text-white/40`}>
+              <span key={href} aria-disabled="true" title={t("Disponível em breve")} className={`${base} cursor-not-allowed text-white/40`}>
                 {content}
               </span>
             );
@@ -68,15 +70,15 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
         <div className="mb-[18px] flex items-start gap-2.5">
           <LifeBuoy size={27} className="shrink-0" />
           <div>
-            <strong className="block text-[13px]">Precisa de ajuda?</strong>
-            <small className="mt-0.5 block text-xs text-[#e1e1e5]">Aceda à central de suporte</small>
+            <strong className="block text-[13px]"><T>Precisa de ajuda?</T></strong>
+            <small className="mt-0.5 block text-xs text-[#e1e1e5]"><T>Aceda à central de suporte</T></small>
           </div>
         </div>
-        <button disabled title="Disponível em breve" className="w-full cursor-not-allowed rounded-[9px] bg-linear-to-b from-white to-[#e3e5e9] p-2.5 text-xs font-extrabold text-[#18191d] opacity-90">
-          Falar com o suporte
+        <button disabled title={t("Disponível em breve")} className="w-full cursor-not-allowed rounded-[9px] bg-linear-to-b from-white to-[#e3e5e9] p-2.5 text-xs font-extrabold text-[#18191d] opacity-90">
+          <T>Falar com o suporte</T>
         </button>
       </div>
-      <div className="text-center text-[10px] text-[#777e87]">BIGstock by BIGhub</div>
+      <div className="text-center text-[10px] text-[#777e87]"><T>BIGstock by BIGhub</T></div>
     </aside>
   );
 }

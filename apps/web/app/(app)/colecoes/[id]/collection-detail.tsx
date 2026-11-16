@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, apiGet, errorMessage } from "@/lib/api";
+import { T, useT } from "@/components/i18n/provider";
 
 export function CollectionDetail({ orgId, canWrite, canManage, collection, initial, nextCursor }: {
   orgId: string; canWrite: boolean; canManage: boolean; collection: CollectionDto; initial: LibraryAssetDto[]; nextCursor: string | null;
 }) {
+  const t = useT();
   const router = useRouter();
   const [col, setCol] = useState(collection);
   const [items, setItems] = useState(initial);
@@ -33,7 +35,7 @@ export function CollectionDetail({ orgId, canWrite, canManage, collection, initi
   }
 
   async function remove() {
-    if (!window.confirm(`Apagar a coleção “${col.name}”? As imagens não são apagadas.`)) return;
+    if (!window.confirm(t("Apagar a coleção “{name}”? As imagens não são apagadas.", { name: col.name }))) return;
     try {
       await api(base, undefined, "DELETE");
       router.push("/colecoes");
@@ -69,11 +71,11 @@ export function CollectionDetail({ orgId, canWrite, canManage, collection, initi
     <>
       {editing ? (
         <form onSubmit={save} className="flex max-w-2xl flex-col gap-2">
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} aria-label="Nome" className="h-11 rounded-[9px] border border-nav/15 bg-white px-3 text-lg font-extrabold outline-0 focus:border-brand" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} rows={2} aria-label="Descrição" placeholder="Descrição (opcional)" className="rounded-[9px] border border-nav/15 bg-white px-3 py-2 text-sm outline-0 focus:border-brand" />
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} aria-label={t("Nome")} className="h-11 rounded-[9px] border border-nav/15 bg-white px-3 text-lg font-extrabold outline-0 focus:border-brand" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} rows={2} aria-label={t("Descrição")} placeholder={t("Descrição (opcional)")} className="rounded-[9px] border border-nav/15 bg-white px-3 py-2 text-sm outline-0 focus:border-brand" />
           <div className="flex gap-2">
-            <button disabled={!name.trim()} className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-[#bd0024] disabled:opacity-60">Guardar</button>
-            <button type="button" onClick={() => { setEditing(false); setName(col.name); setDescription(col.description ?? ""); }} className="rounded-lg border border-nav/20 bg-white px-4 py-2 text-sm font-bold">Cancelar</button>
+            <button disabled={!name.trim()} className="rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-[#bd0024] disabled:opacity-60"><T>Guardar</T></button>
+            <button type="button" onClick={() => { setEditing(false); setName(col.name); setDescription(col.description ?? ""); }} className="rounded-lg border border-nav/20 bg-white px-4 py-2 text-sm font-bold"><T>Cancelar</T></button>
           </div>
         </form>
       ) : (
@@ -84,8 +86,8 @@ export function CollectionDetail({ orgId, canWrite, canManage, collection, initi
           </div>
           {canManage && (
             <div className="flex gap-2">
-              <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 rounded-lg border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold hover:border-brand"><Pencil size={15} /> Editar</button>
-              <button onClick={remove} className="flex items-center gap-1.5 rounded-lg border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold text-brand hover:border-brand"><Trash2 size={15} /> Apagar</button>
+              <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 rounded-lg border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold hover:border-brand"><Pencil size={15} /> <T>Editar</T></button>
+              <button onClick={remove} className="flex items-center gap-1.5 rounded-lg border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold text-brand hover:border-brand"><Trash2 size={15} /> <T>Apagar</T></button>
             </div>
           )}
         </div>
@@ -94,9 +96,9 @@ export function CollectionDetail({ orgId, canWrite, canManage, collection, initi
 
       {items.length === 0 ? (
         <div className="mt-6 rounded-xl border border-dashed border-nav/20 bg-white p-10 text-center">
-          <p className="font-semibold">Esta coleção está vazia.</p>
-          <p className="mt-1 text-sm text-nav/60">Abra uma imagem em Explorar e use “Guardar em coleção”.</p>
-          <Link href="/explorar" className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-[#bd0024]">Explorar imagens</Link>
+          <p className="font-semibold"><T>Esta coleção está vazia.</T></p>
+          <p className="mt-1 text-sm text-nav/60"><T>Abra uma imagem em Explorar e use “Guardar em coleção”.</T></p>
+          <Link href="/explorar" className="mt-4 inline-block rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-[#bd0024]"><T>Explorar imagens</T></Link>
         </div>
       ) : (
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
@@ -105,12 +107,12 @@ export function CollectionDetail({ orgId, canWrite, canManage, collection, initi
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api${a.preview_url}`} alt={a.title} loading="lazy" className="h-full w-full object-cover" />
               <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-8 text-xs font-bold text-white">{a.title}</span>
-              {canWrite && <button type="button" aria-label={`Remover ${a.title} da coleção`} onClick={() => removeItem(a.id)} className="absolute top-2 right-2 rounded-full bg-white/90 p-2 text-nav hover:bg-white"><X size={16} /></button>}
+              {canWrite && <button type="button" aria-label={t("Remover {title} da coleção", { title: a.title })} onClick={() => removeItem(a.id)} className="absolute top-2 right-2 rounded-full bg-white/90 p-2 text-nav hover:bg-white"><X size={16} /></button>}
             </li>
           ))}
         </ul>
       )}
-      {cursor && <div className="mt-8 text-center"><button onClick={more} className="rounded-lg border border-nav/20 bg-white px-6 py-2.5 text-sm font-bold hover:border-brand">Carregar mais</button></div>}
+      {cursor && <div className="mt-8 text-center"><button onClick={more} className="rounded-lg border border-nav/20 bg-white px-6 py-2.5 text-sm font-bold hover:border-brand"><T>Carregar mais</T></button></div>}
     </>
   );
 }

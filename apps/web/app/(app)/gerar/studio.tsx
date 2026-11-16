@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import { GeneratingVisual } from "@/components/ai/generating-visual";
 import { api, apiGet, ApiError, codeMessage, errorMessage } from "@/lib/api";
 import { generateBrandManual } from "@/lib/brand-manual";
+import { T, useLocale, useT } from "@/components/i18n/provider";
+import { intlLocale } from "@/lib/i18n/config";
+import { rt } from "@/lib/i18n/runtime";
 
 type Mode = "image" | "logo";
 const STYLES = [
@@ -37,10 +40,13 @@ const QUALITIES = [
 ];
 
 export function AiBadge() {
-  return <span className="rounded-full bg-nav/80 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">Gerado por IA</span>;
+  return <span className="rounded-full bg-nav/80 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase"><T>Gerado por IA</T></span>;
 }
 
 export function Studio({ orgId, initialCredits, recent }: { orgId: string; initialCredits: number; recent: AiJobDto[] }) {
+  const t = useT();
+  const locale = useLocale();
+  const intl = intlLocale(locale);
   const [mode, setMode] = useState<Mode>("image");
   const [prompt, setPrompt] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -121,7 +127,7 @@ export function Studio({ orgId, initialCredits, recent }: { orgId: string; initi
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
       <form onSubmit={generate} className="space-y-4 rounded-[14px] border border-[#e0e3e9] bg-white p-5">
-        <div role="tablist" aria-label="Tipo de geração" className="grid grid-cols-3 gap-1 rounded-xl bg-surface p-1">
+        <div role="tablist" aria-label={t("Tipo de geração")} className="grid grid-cols-3 gap-1 rounded-xl bg-surface p-1">
           {([["image", "Imagem", ImageIcon], ["logo", "Logo", Shapes]] as const).map(([m, label, Icon]) => (
             <button
               key={m}
@@ -132,94 +138,94 @@ export function Studio({ orgId, initialCredits, recent }: { orgId: string; initi
               onClick={() => { setMode(m); setError(null); }}
               className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-bold transition ${mode === m ? "bg-white text-nav shadow-sm" : "text-nav/55 hover:text-nav"} disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              <Icon size={16} /> {label}
+              <Icon size={16} /> {t(label)}
             </button>
           ))}
-          <button type="button" role="tab" aria-selected={false} aria-disabled title="Geração de vídeo em breve" disabled className="flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-bold text-nav/35">
-            <Video size={16} /> Vídeo <Lock size={12} />
+          <button type="button" role="tab" aria-selected={false} aria-disabled title={t("Geração de vídeo em breve")} disabled className="flex cursor-not-allowed items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-sm font-bold text-nav/35">
+            <Video size={16} /> <T>Vídeo</T> <Lock size={12} />
           </button>
         </div>
 
         {mode === "image" ? (
           <>
             <label className="block">
-              <span className="mb-1 block text-sm font-semibold">Descrição</span>
+              <span className="mb-1 block text-sm font-semibold"><T>Descrição</T></span>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 maxLength={2000}
                 rows={5}
                 required
-                placeholder="Um escritório contemporâneo com luz natural e vista para a cidade"
+                placeholder={t("Um escritório contemporâneo com luz natural e vista para a cidade")}
                 className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
               />
             </label>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block"><span className="mb-1 block text-sm font-semibold">Formato</span>
-                <select value={size} onChange={(e) => setSize(e.target.value)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{SIZES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select></label>
-              <label className="block"><span className="mb-1 block text-sm font-semibold">Qualidade</span>
-                <select value={quality} onChange={(e) => setQuality(e.target.value)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{QUALITIES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</select></label>
+              <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Formato</T></span>
+                <select value={size} onChange={(e) => setSize(e.target.value)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{SIZES.map((s) => <option key={s.value} value={s.value}>{t(s.label)}</option>)}</select></label>
+              <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Qualidade</T></span>
+                <select value={quality} onChange={(e) => setQuality(e.target.value)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{QUALITIES.map((s) => <option key={s.value} value={s.value}>{t(s.label)}</option>)}</select></label>
             </div>
           </>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block"><span className="mb-1 block text-sm font-semibold">Nome da marca</span>
-                <input value={brandName} onChange={(e) => setBrandName(e.target.value)} maxLength={40} required placeholder="Aurora" className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-              <label className="block"><span className="mb-1 block text-sm font-semibold">Setor</span>
-                <input value={sector} onChange={(e) => setSector(e.target.value)} maxLength={80} required placeholder="Padaria artesanal" className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
+              <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Nome da marca</T></span>
+                <input value={brandName} onChange={(e) => setBrandName(e.target.value)} maxLength={40} required placeholder={t("Aurora")} className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
+              <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Setor</T></span>
+                <input value={sector} onChange={(e) => setSector(e.target.value)} maxLength={80} required placeholder={t("Padaria artesanal")} className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
             </div>
-            <label className="block"><span className="mb-1 block text-sm font-semibold">Slogan <span className="font-normal text-nav/50">(opcional, vai para o manual)</span></span>
-              <input value={tagline} onChange={(e) => setTagline(e.target.value)} maxLength={80} placeholder="O pão de cada manhã" className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
+            <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Slogan</T> <span className="font-normal text-nav/50"><T>(opcional, vai para o manual)</T></span></span>
+              <input value={tagline} onChange={(e) => setTagline(e.target.value)} maxLength={80} placeholder={t("O pão de cada manhã")} className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
             <fieldset>
-              <legend className="mb-1 text-sm font-semibold">Estilo</legend>
+              <legend className="mb-1 text-sm font-semibold"><T>Estilo</T></legend>
               <div className="flex flex-wrap gap-1.5">
                 {STYLES.map((st) => (
-                  <button key={st.value} type="button" aria-pressed={style === st.value} onClick={() => setStyle(st.value)} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${style === st.value ? "border-brand bg-brand text-white" : "border-nav/20 text-nav/70 hover:border-nav/40"}`}>{st.label}</button>
+                  <button key={st.value} type="button" aria-pressed={style === st.value} onClick={() => setStyle(st.value)} className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${style === st.value ? "border-brand bg-brand text-white" : "border-nav/20 text-nav/70 hover:border-nav/40"}`}>{t(st.label)}</button>
                 ))}
               </div>
             </fieldset>
-            <label className="block"><span className="mb-1 block text-sm font-semibold">Tipo de logótipo</span>
-              <select value={logoType} onChange={(e) => setLogoType(e.target.value as typeof logoType)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{LOGO_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}</select></label>
+            <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Tipo de logótipo</T></span>
+              <select value={logoType} onChange={(e) => setLogoType(e.target.value as typeof logoType)} className="w-full rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">{LOGO_TYPES.map((lt) => <option key={lt.value} value={lt.value}>{t(lt.label)}</option>)}</select></label>
             <fieldset>
-              <legend className="mb-1 text-sm font-semibold">Cores <span className="font-normal text-nav/50">(até 3; clique numa cor para ajustar; vazio = a IA escolhe)</span></legend>
+              <legend className="mb-1 text-sm font-semibold"><T>Cores</T> <span className="font-normal text-nav/50"><T>(até 3; clique numa cor para ajustar; vazio = a IA escolhe)</T></span></legend>
               <div className="flex flex-wrap items-center gap-2">
                 {colors.map((c, i) => (
-                  <label key={i} className="relative h-8 w-8 cursor-pointer overflow-hidden rounded-full border-2 border-nav ring-1 ring-nav/15" style={{ backgroundColor: c }} title={`${c.toUpperCase()} · clique para escolher outra cor`}>
-                    <input type="color" aria-label={`Escolher cor ${i + 1}`} value={c} onChange={(e) => setColors((cur) => cur.map((x, j) => (j === i ? e.target.value.toUpperCase() : x)))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                  <label key={i} className="relative h-8 w-8 cursor-pointer overflow-hidden rounded-full border-2 border-nav ring-1 ring-nav/15" style={{ backgroundColor: c }} title={t("{color} · clique para escolher outra cor", { color: c.toUpperCase() })}>
+                    <input type="color" aria-label={t("Escolher cor {n}", { n: i + 1 })} value={c} onChange={(e) => setColors((cur) => cur.map((x, j) => (j === i ? e.target.value.toUpperCase() : x)))} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
                   </label>
                 ))}
                 {colors.length < 3 && (
                   <>
                     {COLOR_PRESETS.map((c) => (
-                      <button key={c} type="button" aria-label={`Adicionar ${c}`} onClick={() => setColors((cur) => (cur.includes(c) ? cur : [...cur, c]))} className="h-6 w-6 rounded-full border-2 border-white ring-1 ring-nav/15 transition hover:scale-110" style={{ backgroundColor: c }} />
+                      <button key={c} type="button" aria-label={t("Adicionar {color}", { color: c })} onClick={() => setColors((cur) => (cur.includes(c) ? cur : [...cur, c]))} className="h-6 w-6 rounded-full border-2 border-white ring-1 ring-nav/15 transition hover:scale-110" style={{ backgroundColor: c }} />
                     ))}
-                    <button type="button" onClick={() => setColors((cur) => [...cur, "#E4072D"])} className="rounded-full border border-dashed border-nav/30 px-2.5 py-1 text-xs font-bold text-nav/70 hover:border-brand hover:text-brand">+ Cor personalizada</button>
+                    <button type="button" onClick={() => setColors((cur) => [...cur, "#E4072D"])} className="rounded-full border border-dashed border-nav/30 px-2.5 py-1 text-xs font-bold text-nav/70 hover:border-brand hover:text-brand"><T>+ Cor personalizada</T></button>
                   </>
                 )}
-                {colors.length > 0 && <button type="button" onClick={() => setColors([])} className="text-xs font-bold text-nav/60 underline">Limpar</button>}
+                {colors.length > 0 && <button type="button" onClick={() => setColors([])} className="text-xs font-bold text-nav/60 underline"><T>Limpar</T></button>}
               </div>
             </fieldset>
-            <label className="block"><span className="mb-1 block text-sm font-semibold">Ideias adicionais <span className="font-normal text-nav/50">(opcional)</span></span>
-              <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={500} rows={2} placeholder="Ex.: inspirado em espigas de trigo, transmitir calor e tradição" className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
-            <p className="rounded-lg bg-surface px-3 py-2 text-xs text-nav/60">O logo é gerado em alta qualidade, formato quadrado e fundo liso, pronto para o manual da marca.</p>
+            <label className="block"><span className="mb-1 block text-sm font-semibold"><T>Ideias adicionais</T> <span className="font-normal text-nav/50"><T>(opcional)</T></span></span>
+              <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={500} rows={2} placeholder={t("Ex.: inspirado em espigas de trigo, transmitir calor e tradição")} className="w-full rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" /></label>
+            <p className="rounded-lg bg-surface px-3 py-2 text-xs text-nav/60"><T>O logo é gerado em alta qualidade, formato quadrado e fundo liso, pronto para o manual da marca.</T></p>
           </>
         )}
         <div className="flex items-center justify-between rounded-lg bg-surface px-3 py-2.5 text-sm">
-          <span>Custo: <strong>{estimate ? `${estimate.cost} créditos` : "—"}</strong></span>
-          <span className="text-nav/60">Saldo: <strong className="text-nav">{new Intl.NumberFormat("pt-PT").format(available)}</strong></span>
+          <span><T>Custo:</T> <strong>{estimate ? t("{n} créditos", { n: estimate.cost }) : "—"}</strong></span>
+          <span className="text-nav/60"><T>Saldo:</T> <strong className="text-nav">{new Intl.NumberFormat(intl).format(available)}</strong></span>
         </div>
         {estimate && !estimate.canAfford && (
-          <p className="text-sm text-brand">Créditos insuficientes. <Link href="/planos#creditos" className="font-bold underline">Comprar créditos</Link></p>
+          <p className="text-sm text-brand"><T>Créditos insuficientes.</T> <Link href="/planos#creditos" className="font-bold underline"><T>Comprar créditos</T></Link></p>
         )}
         {error && <p role="alert" className="rounded-lg bg-brand/10 px-3 py-2 text-sm text-brand">{error}</p>}
         <button
           disabled={busy || !!running || !estimate || !estimate.canAfford}
           className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-[#bd0024] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Sparkles size={17} /> {busy ? "A enviar…" : running ? "A gerar…" : estimate ? `Gerar ${mode === "logo" ? "logo" : "imagem"} (${estimate.cost} créditos)` : mode === "logo" ? "Gerar logo" : "Gerar"}
+          <Sparkles size={17} /> {busy ? t("A enviar…") : running ? t("A gerar…") : estimate ? t(mode === "logo" ? "Gerar logo ({n} créditos)" : "Gerar imagem ({n} créditos)", { n: estimate.cost }) : mode === "logo" ? t("Gerar logo") : t("Gerar")}
         </button>
-        <p className="text-[11px] text-nav/50">As imagens e logos gerados são privados da sua organização e sinalizadas como conteúdo gerado por IA.</p>
+        <p className="text-[11px] text-nav/50"><T>As imagens e logos gerados são privados da sua organização e sinalizadas como conteúdo gerado por IA.</T></p>
       </form>
 
       <div className="space-y-4">
@@ -227,41 +233,41 @@ export function Studio({ orgId, initialCredits, recent }: { orgId: string; initi
           {job?.status === "succeeded" && job.output_url ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/api${job.output_url}`} alt={job.kind === "logo" && job.brief ? `Logo ${job.brief.brandName}` : job.prompt} className={`h-full w-full object-contain ${job.kind === "logo" ? "bg-white p-6" : ""}`} />
+              <img src={`/api${job.output_url}`} alt={job.kind === "logo" && job.brief ? t("Logo {name}", { name: job.brief.brandName }) : job.prompt} className={`h-full w-full object-contain ${job.kind === "logo" ? "bg-white p-6" : ""}`} />
               <div className="absolute top-3 left-3"><AiBadge /></div>
-              <a href={`/api${job.output_url}?download=1`} className="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold hover:bg-surface"><Download size={14} /> Descarregar</a>
+              <a href={`/api${job.output_url}?download=1`} className="absolute right-3 bottom-3 flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-xs font-bold hover:bg-surface"><Download size={14} /> <T>Descarregar</T></a>
             </>
           ) : job?.status === "failed" ? (
-            <p className="max-w-xs p-6 text-center text-sm text-white">{codeMessage(job.error_code)}</p>
+            <p className="max-w-xs p-6 text-center text-sm text-white">{t(codeMessage(job.error_code))}</p>
           ) : running ? (
             <GeneratingVisual mode={job.kind === "logo" ? "logo" : "image"} queued={job.status === "queued"} />
           ) : (
-            <p className="max-w-xs p-6 text-center text-sm text-white/60">{mode === "logo" ? "O logo aparece aqui." : "O resultado aparece aqui."}</p>
+            <p className="max-w-xs p-6 text-center text-sm text-white/60">{mode === "logo" ? t("O logo aparece aqui.") : t("O resultado aparece aqui.")}</p>
           )}
         </div>
         {job?.status === "succeeded" && job.kind === "logo" && job.output_url && job.brief && (
           <div className="rounded-[14px] border border-[#e0e3e9] bg-white p-4">
-            <h2 className="text-sm font-extrabold">Manual da marca</h2>
-            <p className="mt-1 text-xs text-nav/60">PDF com logótipo, área de proteção, versões, paleta de cores, tipografia, usos incorretos e notas legais. Sem custo de créditos.</p>
+            <h2 className="text-sm font-extrabold"><T>Manual da marca</T></h2>
+            <p className="mt-1 text-xs text-nav/60"><T>PDF com logótipo, área de proteção, versões, paleta de cores, tipografia, usos incorretos e notas legais. Sem custo de créditos.</T></p>
             <button
               type="button"
               disabled={manualBusy}
               onClick={async () => {
                 setManualBusy(true);
                 setError(null);
-                try { await generateBrandManual(job, `/api${job.output_url}`); }
-                catch { setError("Não foi possível criar o PDF. Tente novamente."); }
+                try { await generateBrandManual(job, `/api${job.output_url}`, locale); }
+                catch { setError(rt("Não foi possível criar o PDF. Tente novamente.")); }
                 finally { setManualBusy(false); }
               }}
               className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-nav px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1a222c] disabled:cursor-wait disabled:opacity-60"
             >
-              {manualBusy ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />} {manualBusy ? "A criar o PDF…" : "Gerar manual da marca (PDF)"}
+              {manualBusy ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />} {manualBusy ? t("A criar o PDF…") : t("Gerar manual da marca (PDF)")}
             </button>
           </div>
         )}
         {history.length > 0 && (
           <div>
-            <div className="mb-2 flex items-center justify-between"><h2 className="text-sm font-extrabold">Recentes</h2><Link href="/historico" className="text-xs font-bold text-[#c5001f] hover:underline">Ver histórico</Link></div>
+            <div className="mb-2 flex items-center justify-between"><h2 className="text-sm font-extrabold"><T>Recentes</T></h2><Link href="/historico" className="text-xs font-bold text-[#c5001f] hover:underline"><T>Ver histórico</T></Link></div>
             <ul className="grid grid-cols-3 gap-2">
               {history.filter((h) => h.status === "succeeded" && h.output_url).slice(0, 6).map((h) => (
                 <li key={h.id}>

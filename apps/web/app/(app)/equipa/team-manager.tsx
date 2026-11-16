@@ -5,6 +5,8 @@ import { Copy, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api, errorMessage } from "@/lib/api";
+import { T, useLocale, useT } from "@/components/i18n/provider";
+import { intlLocale } from "@/lib/i18n/config";
 
 export interface Member { user_id: string; email: string; display_name: string | null; role: Role }
 export interface Invitation { id: string; email: string; role: string; expires_at: string }
@@ -15,6 +17,8 @@ const card = "rounded-[14px] border border-[#e0e3e9] bg-white p-5 shadow-[0_1px_
 export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
   orgId: string; myUserId: string; myRole: Role; members: Member[]; invitations: Invitation[];
 }) {
+  const t = useT();
+  const intl = intlLocale(useLocale());
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<{ email: string; url: string } | null>(null);
@@ -61,20 +65,20 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
 
       {can(myRole, "members:invite") && (
         <section className={card}>
-          <h2 className="mb-3 text-lg font-extrabold">Convidar membro</h2>
+          <h2 className="mb-3 text-lg font-extrabold"><T>Convidar membro</T></h2>
           <form onSubmit={onInvite} className="flex flex-col gap-3 sm:flex-row">
-            <input name="email" type="email" required placeholder="email@exemplo.com" aria-label="Email do convidado"
+            <input name="email" type="email" required placeholder={t("email@exemplo.com")} aria-label={t("Email do convidado")}
               className="min-w-0 flex-1 rounded-lg border border-nav/20 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" />
-            <select name="role" aria-label="Papel" defaultValue="member" className="rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">
-              {inviteRoles.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+            <select name="role" aria-label={t("Papel")} defaultValue="member" className="rounded-lg border border-nav/20 bg-white px-3 py-2.5 text-sm">
+              {inviteRoles.map((r) => <option key={r} value={r}>{t(ROLE_LABEL[r] ?? r)}</option>)}
             </select>
-            <button disabled={busy} className="rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand/90 disabled:opacity-60">Convidar</button>
+            <button disabled={busy} className="rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand/90 disabled:opacity-60"><T>Convidar</T></button>
           </form>
-          {sentTo && <p className="mt-4 rounded-lg border border-[#cfe9d6] bg-[#f1faf4] p-3 text-sm text-[#1f6b3a]">Convite enviado por e-mail para <strong>{sentTo}</strong>. Válido durante 7 dias.</p>}
+          {sentTo && <p className="mt-4 rounded-lg border border-[#cfe9d6] bg-[#f1faf4] p-3 text-sm text-[#1f6b3a]"><T>Convite enviado por e-mail para</T> <strong>{sentTo}</strong><T>. Válido durante 7 dias.</T></p>}
           {link && (
             <div className="mt-4 rounded-lg border border-[#f3dfe3] bg-[#fff5f6] p-3 text-sm">
-              <p className="mb-2 font-semibold">Convite criado para {link.email}</p>
-              <p className="mb-2 text-nav/70">O envio por e-mail não está configurado neste ambiente. Partilhe este link com o convidado (válido 7 dias, mostrado apenas agora):</p>
+              <p className="mb-2 font-semibold"><T>Convite criado para</T> {link.email}</p>
+              <p className="mb-2 text-nav/70"><T>O envio por e-mail não está configurado neste ambiente. Partilhe este link com o convidado (válido 7 dias, mostrado apenas agora):</T></p>
               <div className="flex items-center gap-2">
                 <code className="min-w-0 flex-1 truncate rounded bg-white px-2 py-1.5 text-xs">{link.url}</code>
                 <button
@@ -82,7 +86,7 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
                   onClick={async () => { await navigator.clipboard.writeText(link.url).catch(() => undefined); setCopied(true); }}
                   className="flex items-center gap-1.5 rounded-lg border border-nav/20 bg-white px-3 py-1.5 text-xs font-semibold"
                 >
-                  <Copy size={14} /> {copied ? "Copiado" : "Copiar"}
+                  <Copy size={14} /> {copied ? t("Copiado") : t("Copiar")}
                 </button>
               </div>
             </div>
@@ -91,7 +95,7 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
       )}
 
       <section className={card}>
-        <h2 className="mb-3 text-lg font-extrabold">Membros ({members.length})</h2>
+        <h2 className="mb-3 text-lg font-extrabold"><T>Membros (</T>{members.length})</h2>
         <ul className="divide-y divide-[#eef0f3]">
           {members.map((m) => {
             const isMe = m.user_id === myUserId;
@@ -99,27 +103,27 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
             return (
               <li key={m.user_id} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{m.display_name ?? m.email}{isMe && <span className="ml-2 text-xs text-nav/50">(você)</span>}</p>
+                  <p className="truncate text-sm font-semibold">{m.display_name ?? m.email}{isMe && <span className="ml-2 text-xs text-nav/50"><T>(você)</T></span>}</p>
                   <p className="truncate text-xs text-nav/60">{m.email}</p>
                 </div>
                 {can(myRole, "members:change_role") ? (
                   <select
-                    aria-label={`Papel de ${m.email}`}
+                    aria-label={t("Papel de {email}", { email: m.email })}
                     value={m.role}
                     disabled={busy}
                     onChange={(e) => run(() => api(`${base}/members/${m.user_id}`, { role: e.target.value }, "PATCH"))}
                     className="rounded-lg border border-nav/20 bg-white px-2 py-1.5 text-xs"
                   >
-                    {roles.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                    {roles.map((r) => <option key={r} value={r}>{t(ROLE_LABEL[r] ?? r)}</option>)}
                   </select>
                 ) : (
-                  <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold">{ROLE_LABEL[m.role]}</span>
+                  <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold">{t(ROLE_LABEL[m.role] ?? m.role)}</span>
                 )}
                 {canRemove && (
                   <button
-                    aria-label={`Remover ${m.email}`}
+                    aria-label={t("Remover {email}", { email: m.email })}
                     disabled={busy}
-                    onClick={() => { if (confirm(`Remover ${m.email} da organização?`)) void run(() => api(`${base}/members/${m.user_id}`, undefined, "DELETE")); }}
+                    onClick={() => { if (confirm(t("Remover {email} da organização?", { email: m.email }))) void run(() => api(`${base}/members/${m.user_id}`, undefined, "DELETE")); }}
                     className="rounded-lg p-2 text-brand hover:bg-brand/10"
                   >
                     <Trash2 size={17} />
@@ -133,24 +137,24 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
 
       {can(myRole, "members:invite") && (
         <section className={card}>
-          <h2 className="mb-3 text-lg font-extrabold">Convites pendentes ({invitations.length})</h2>
+          <h2 className="mb-3 text-lg font-extrabold"><T>Convites pendentes (</T>{invitations.length})</h2>
           {invitations.length === 0 ? (
-            <p className="text-sm text-nav/60">Sem convites pendentes.</p>
+            <p className="text-sm text-nav/60"><T>Sem convites pendentes.</T></p>
           ) : (
             <ul className="divide-y divide-[#eef0f3]">
               {invitations.map((i) => (
                 <li key={i.id} className="flex items-center gap-3 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{i.email}</p>
-                    <p className="text-xs text-nav/60">{ROLE_LABEL[i.role]} · expira em {new Date(i.expires_at).toLocaleDateString("pt-PT")}</p>
+                    <p className="text-xs text-nav/60">{t(ROLE_LABEL[i.role] ?? i.role)} <T>· expira em</T> {new Date(i.expires_at).toLocaleDateString(intl)}</p>
                   </div>
                   <button
-                    aria-label={`Revogar convite de ${i.email}`}
+                    aria-label={t("Revogar convite de {email}", { email: i.email })}
                     disabled={busy}
                     onClick={() => run(() => api(`${base}/invitations/${i.id}`, undefined, "DELETE"))}
                     className="rounded-lg px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand/10"
                   >
-                    Revogar
+                    <T>Revogar</T>
                   </button>
                 </li>
               ))}
