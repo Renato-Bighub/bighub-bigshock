@@ -6,13 +6,17 @@ export const AI_SIZES = ["1024x1024", "1536x1024", "1024x1536"] as const;
 export const AI_QUALITIES = ["standard", "high"] as const;
 export type AiSize = (typeof AI_SIZES)[number];
 export type AiQuality = (typeof AI_QUALITIES)[number];
-export type AiKind = "generate" | "edit";
+export type AiKind = "generate" | "edit" | "logo";
 
 const BASE: Record<AiSize, number> = { "1024x1024": 10, "1536x1024": 15, "1024x1536": 15 };
 const QUALITY_MULTIPLIER: Record<AiQuality, number> = { standard: 1, high: 3 };
 const EDIT_SURCHARGE = 5;
 
+/** Logo: sempre quadrado em alta qualidade, com preço fixo (inclui a margem para repetir em caso de rejeição). */
+export const LOGO_COST = 40;
+
 export function estimateAiCost(input: { kind: AiKind; size: AiSize; quality: AiQuality }): number {
+  if (input.kind === "logo") return LOGO_COST;
   const base = BASE[input.size] * QUALITY_MULTIPLIER[input.quality];
   return base + (input.kind === "edit" ? EDIT_SURCHARGE : 0);
 }

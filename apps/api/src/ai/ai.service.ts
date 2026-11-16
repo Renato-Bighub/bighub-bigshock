@@ -14,7 +14,7 @@ import {
   type Database,
 } from "@bigstock/database";
 import { aiPricingTable, estimateAiCost } from "@bigstock/billing";
-import type { AiJobBody, AiJobDto, AiRequestBody } from "@bigstock/contracts";
+import type { AiJobBody, AiJobDto, AiRequestBody, LogoBrief } from "@bigstock/contracts";
 import { CreditsService } from "../billing/credits.service.js";
 import { decodeCursor, encodeCursor } from "../catalog/cursor.js";
 import { StorageService } from "../catalog/storage.service.js";
@@ -40,6 +40,7 @@ export const toJobDto = (j: JobRow, orgId: string): AiJobDto => ({
   id: j.id,
   kind: j.kind,
   prompt: j.prompt,
+  brief: (j.brief as LogoBrief | null) ?? null,
   size: j.size,
   quality: j.quality,
   status: j.status,
@@ -52,6 +53,14 @@ export const toJobDto = (j: JobRow, orgId: string): AiJobDto => ({
   created_at: j.createdAt.toISOString(),
   finished_at: j.finishedAt?.toISOString() ?? null,
 });
+
+/** O modo logo fixa formato e qualidade no servidor: o cliente nunca decide o que determina custo e qualidade. */
+function normalize(body: AiRequestBody) {
+  if (body.mode === "logo") {
+    return { kind: "logo" as const, size: "1024x1024" as const, quality: "high" as const, prompt: body.prompt || body.brief!.brandName };
+  }
+  return { kind: (body.referenceAssetId ? "edit" : "generate") as "edit" | "generate", size: body.size, quality: body.quality, prompt: body.prompt };
+}
 
 @Injectable()
 export class AiService {
@@ -75,16 +84,16 @@ export class AiService {
 
   /** Mostrado ANTES de confirmar. O valor é indicativo: a criação do job recalcula sempre. */
   async estimate(orgId: string, body: AiRequestBody) {
-    const kind = body.referenceAssetId ? "edit" : "generate";
-    const cost = estimateAiCost({ kind, size: body.size, quality: body.quality });
+    const { kind, size, quality } = normalize(body);
+    const cost = estimateAiCost({ kind, size, quality });
     const available = await this.credits.balance(orgId);
     return { cost_credits: cost, available_credits: available, can_afford: available >= cost, kind };
   }
 
   async create(orgId: string, userId: string, body: AiJobBody, idemKey: string, requestId: string): Promise<{ job: AiJobDto; created: boolean }> {
     this.assertAvailable();
-    const kind = body.referenceAssetId ? "edit" : "generate";
-    const cost = estimateAiCost({ kind, size: body.size, quality: body.quality });
+    const { kind, size, quality, prompt } = normalize(body);
+    const cost = estimateAiCost({ kind, size, quality });
     // Nunca confiar no custo do cliente: se divergir, o utilizador volta a confirmar.
     if (body.expectedCostCredits !== cost) {
       throw new ConflictException({ code: "cost_changed", message: `Cost is now ${cost} credits`, cost_credits: cost });
@@ -92,7 +101,7 @@ export class AiService {
 
     const existing = await this.findByKey(orgId, idemKey);
     if (existing) {
-      if (existing.prompt !== body.prompt) throw new ConflictException({ code: "idempotency_conflict", message: "Idempotency-Key was used for a different request" });
+      if (existing.prompt !== prompt) throw new ConflictException({ code: "idempotency_conflict", message: "Idempotency-Key was used for a different request" });
       return { job: toJobDto(existing, orgId), created: false };
     }
 
@@ -117,7 +126,7 @@ export class AiService {
         const rows = await tx
           .insert(aiJobs)
           .values({
-            organizationId: orgId, userId, kind, prompt: body.prompt, size: body.size, quality: body.quality,
+            organizationId: orgId, userId, kind, prompt, brief: body.mode === "logo" ? body.brief : null, size, quality,
             referenceAssetId: body.referenceAssetId ?? null, costCredits: cost, reservationId, idempotencyKey: idemKey,
           })
           .onConflictDoNothing()

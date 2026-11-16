@@ -4,6 +4,8 @@ import { CreditsService } from "../billing/credits.service.js";
 import { StorageService } from "../catalog/storage.service.js";
 import { DB } from "../database.module.js";
 import { IMAGE_PROVIDER, ProviderError, type ImageProvider } from "./image-provider.js";
+import type { LogoBrief } from "@bigstock/contracts";
+import { buildLogoPrompt } from "./logo-prompt.js";
 import { buildProvenance, embedAiProvenance } from "./png-provenance.js";
 
 export class RetryableError extends Error {}
@@ -48,7 +50,7 @@ export class AiRunnerService {
         if (!a?.originalKey || !a.originalContentType || !a.allowsAiTransform) throw new ProviderError("permanent", "reference asset not usable");
         reference = { bytes: await this.storage.get(a.originalKey), contentType: a.originalContentType };
       }
-      const out = await this.provider.generate({ prompt: job.prompt, size: job.size as never, quality: job.quality as never, reference });
+      const out = await this.provider.generate({ prompt: job.kind === "logo" && job.brief ? buildLogoPrompt(job.brief as LogoBrief, job.prompt === (job.brief as LogoBrief).brandName ? undefined : job.prompt) : job.prompt, size: job.size as never, quality: job.quality as never, reference });
       const provenance = buildProvenance({ provider: this.provider.name, model: this.provider.model, jobId, providerRequestId: out.providerRequestId });
       const bytes = out.contentType === "image/png" ? embedAiProvenance(out.bytes, provenance) : out.bytes;
       const key = `ai/${orgId}/${jobId}.${out.contentType === "image/png" ? "png" : "bin"}`;

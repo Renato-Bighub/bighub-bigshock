@@ -9,3 +9,14 @@
 }
 
 h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.038em; }
+
+/* Animação de espera da geração por IA */
+@keyframes bs-drift { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(8%, -6%, 0) scale(1.15); } }
+@keyframes bs-draw { 0% { stroke-dashoffset: 1; opacity: 0; } 12% { opacity: 1; } 55%, 80% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes bs-fillin { 0%, 45% { fill-opacity: 0; } 70%, 85% { fill-opacity: 0.9; } 100% { fill-opacity: 0; } }
+@keyframes bs-bar { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+@keyframes bs-pop { 0%, 100% { opacity: 0.15; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes bs-fade { from { opacity: 0.45; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .bs-anim, .bs-anim * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

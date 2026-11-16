@@ -345,8 +345,10 @@ export const aiJobs = pgTable(
     id: id(),
     organizationId: uuid("organization_id").notNull().references(() => organizations.id),
     userId: uuid("user_id").notNull().references(() => users.id),
-    kind: text("kind", { enum: ["generate", "edit"] }).notNull(),
+    kind: text("kind", { enum: ["generate", "edit", "logo"] }).notNull(),
     prompt: text("prompt").notNull(),
+    /** Briefing de marca (kind = logo). */
+    brief: jsonb("brief"),
     size: text("size").notNull(),
     quality: text("quality").notNull(),
     referenceAssetId: uuid("reference_asset_id").references(() => assets.id),

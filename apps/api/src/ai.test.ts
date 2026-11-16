@@ -92,6 +92,24 @@ describe.skipIf(!url)("geração por IA", () => {
     expect((await http().get(`/v1/organizations/${o.orgId}/ai/pricing`).set("Cookie", o.cookie)).body.data).toHaveLength(6);
   });
 
+  it("logo: custo fixo, formato e qualidade impostos pelo servidor, briefing obrigatório", async () => {
+    const o = await newOrg();
+    await grant(o.orgId, 100);
+    const brief = { brandName: "Aurora", sector: "padaria artesanal", style: "minimalista", type: "simbolo_e_nome", colors: ["#C5001F"] };
+    const bad = await http().post(`/v1/organizations/${o.orgId}/ai/estimate`).set("Cookie", o.cookie).send({ mode: "logo" });
+    expect(bad.status).toBe(400);
+    // O cliente tenta forçar formato/qualidade baratos: o servidor ignora e cobra o preço de logo.
+    const est = await http().post(`/v1/organizations/${o.orgId}/ai/estimate`).set("Cookie", o.cookie).send({ mode: "logo", brief, size: "1536x1024", quality: "standard" });
+    expect(est.body.data).toMatchObject({ cost_credits: 40, kind: "logo" });
+    const res = await create(o, "key-logo-0001", { mode: "logo", brief, expectedCostCredits: 40 });
+    expect(res.status).toBe(202);
+    expect(res.body.data).toMatchObject({ kind: "logo", size: "1024x1024", quality: "high", cost_credits: 40, brief: { brandName: "Aurora" } });
+    await run(o.orgId, res.body.data.id);
+    const done = await http().get(`/v1/organizations/${o.orgId}/ai/jobs/${res.body.data.id}`).set("Cookie", o.cookie);
+    expect(done.body.data.status).toBe("succeeded");
+    expect(await credits.balance(o.orgId)).toBe(60);
+  });
+
   it("sem créditos: 402 antes de qualquer job ser enfileirado", async () => {
     const o = await newOrg();
     const before = queue.jobs.length;
