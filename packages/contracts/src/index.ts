@@ -60,7 +60,7 @@ export const loginBody = z.object({
 export type LoginBody = z.infer<typeof loginBody>;
 
 export const meResponse = z.object({
-  user: z.object({ id: uuid, email: z.string(), display_name: z.string().nullable() }),
+  user: z.object({ id: uuid, email: z.string(), display_name: z.string().nullable(), email_verified: z.boolean() }),
   organizations: z.array(z.object({ id: uuid, name: z.string(), role: z.string() })),
   request_id: z.string(),
 });

@@ -6,7 +6,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { me, org } = await getActiveOrg();
   if (!me) redirect("/login");
   return (
-    <AppShell user={{ name: me.user.display_name ?? me.user.email, orgName: org?.name ?? "Sem organização", role: org?.role ?? "", orgId: org?.id ?? "", organizations: me.organizations }}>
+    <AppShell user={{ name: me.user.display_name ?? me.user.email, orgName: org?.name ?? "Sem organização", role: org?.role ?? "", orgId: org?.id ?? "", organizations: me.organizations, emailVerified: me.user.email_verified }}>
       {children}
     </AppShell>
   );

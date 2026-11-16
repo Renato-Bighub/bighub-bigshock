@@ -18,6 +18,7 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<{ email: string; url: string } | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const base = `/v1/organizations/${orgId}`;
@@ -41,8 +42,14 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
     const form = e.currentTarget;
     const f = new FormData(form);
     await run(async () => {
-      const res = await api<{ data: { email: string; token: string } }>(`${base}/invitations`, { email: f.get("email"), role: f.get("role") });
-      setLink({ email: res.data.email, url: `${window.location.origin}/convites/aceitar?token=${res.data.token}` });
+      const res = await api<{ data: { email: string; token?: string; emailed: boolean } }>(`${base}/invitations`, { email: f.get("email"), role: f.get("role") });
+      if (res.data.emailed || !res.data.token) {
+        setLink(null);
+        setSentTo(res.data.email);
+      } else {
+        setSentTo(null);
+        setLink({ email: res.data.email, url: `${window.location.origin}/convites/aceitar?token=${res.data.token}` });
+      }
       setCopied(false);
       form.reset();
     });
@@ -63,10 +70,11 @@ export function TeamManager({ orgId, myUserId, myRole, members, invitations }: {
             </select>
             <button disabled={busy} className="rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand/90 disabled:opacity-60">Convidar</button>
           </form>
+          {sentTo && <p className="mt-4 rounded-lg border border-[#cfe9d6] bg-[#f1faf4] p-3 text-sm text-[#1f6b3a]">Convite enviado por e-mail para <strong>{sentTo}</strong>. Válido durante 7 dias.</p>}
           {link && (
             <div className="mt-4 rounded-lg border border-[#f3dfe3] bg-[#fff5f6] p-3 text-sm">
               <p className="mb-2 font-semibold">Convite criado para {link.email}</p>
-              <p className="mb-2 text-nav/70">O envio por email ainda não está disponível. Partilhe este link com o convidado (válido 7 dias, mostrado apenas agora):</p>
+              <p className="mb-2 text-nav/70">O envio por e-mail não está configurado neste ambiente. Partilhe este link com o convidado (válido 7 dias, mostrado apenas agora):</p>
               <div className="flex items-center gap-2">
                 <code className="min-w-0 flex-1 truncate rounded bg-white px-2 py-1.5 text-xs">{link.url}</code>
                 <button

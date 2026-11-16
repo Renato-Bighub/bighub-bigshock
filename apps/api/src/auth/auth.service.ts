@@ -18,6 +18,7 @@ import {
 } from "@bigstock/database";
 import type { LoginBody, RegisterBody } from "@bigstock/contracts";
 import { DB } from "../database.module.js";
+import { AccountService } from "./account.service.js";
 import { hashPassword, verifyPassword } from "./password.js";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -34,7 +35,10 @@ const isUniqueViolation = (e: unknown) =>
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject(DB) private readonly db: Database) {}
+  constructor(
+    @Inject(DB) private readonly db: Database,
+    private readonly account: AccountService,
+  ) {}
 
   async register(body: RegisterBody, requestId: string) {
     const passwordHash = await hashPassword(body.password);
@@ -60,6 +64,8 @@ export class AuthService {
         requestId,
       });
     });
+    // Verificação de e-mail: melhor esforço (não falha o registo se o envio falhar).
+    await this.account.sendVerification(userId, true).catch(() => undefined);
     return { userId, token: await this.createSession(userId) };
   }
 
@@ -104,7 +110,7 @@ export class AuthService {
 
   async authenticate(token: string) {
     const [row] = await this.db
-      .select({ id: users.id, email: users.email, displayName: users.displayName })
+      .select({ id: users.id, email: users.email, displayName: users.displayName, emailVerifiedAt: users.emailVerifiedAt })
       .from(sessions)
       .innerJoin(users, eq(users.id, sessions.userId))
       .where(and(eq(sessions.tokenHash, sha256(token)), isNull(sessions.revokedAt), gt(sessions.expiresAt, new Date())));

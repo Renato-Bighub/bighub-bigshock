@@ -124,6 +124,8 @@ export const invitations = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     acceptedAt: timestamp("accepted_at", { withTimezone: true }),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    /** Preenchido quando o convite foi enviado por e-mail (prova de posse do e-mail ao aceitar). */
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
   (t) => [index("invitations_org_idx").on(t.organizationId), index("invitations_email_idx").on(t.email)],
@@ -439,4 +441,19 @@ export const authAttempts = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("auth_attempts_email_idx").on(t.emailHash, t.createdAt), index("auth_attempts_ip_idx").on(t.ip, t.createdAt)],
+);
+
+/** Tokens de uso único por e-mail (verificação e recuperação de senha). Só o hash é guardado. */
+export const emailTokens = pgTable(
+  "email_tokens",
+  {
+    id: id(),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    kind: text("kind", { enum: ["verify_email", "password_reset"] }).notNull(),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("email_tokens_user_kind_idx").on(t.userId, t.kind, t.createdAt)],
 );

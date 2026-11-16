@@ -57,7 +57,7 @@ export class AuthController {
   async me(@Req() req: AuthedRequest): Promise<MeResponse> {
     const orgs = await this.auth.memberships(req.user.id);
     return {
-      user: { id: req.user.id, email: req.user.email, display_name: req.user.displayName },
+      user: { id: req.user.id, email: req.user.email, display_name: req.user.displayName, email_verified: Boolean(req.user.emailVerifiedAt) },
       organizations: orgs,
       request_id: String(req.id),
     };

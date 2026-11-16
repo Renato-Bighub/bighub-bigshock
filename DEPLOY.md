@@ -83,6 +83,21 @@ pode demorar até 15 s a valer em todas as instâncias. Não há SDK ainda (V1.1
 `CRON_SECRET` (projeto da API): segredo longo e aleatório. O Vercel Cron chama `GET /v1/internal/retention` todos os dias às 03:00 UTC
 (definido em `apps/api/vercel.json`) com `Authorization: Bearer $CRON_SECRET`. Detalhes em `docs/RGPD.md`.
 
+## E-mail transacional
+
+Sem fornecedor configurado, **nada é enviado** em produção (recuperação de senha, verificação e convites ficam inoperantes; os convites
+continuam a devolver o token a quem convida). Para ativar o Resend (recomendado: região UE):
+
+| Variável (projeto da API) | Notas |
+|---|---|
+| `RESEND_API_KEY` | Chave da API do Resend. |
+| `EMAIL_FROM` | Ex.: `BIGstock <no-reply@o-seu-dominio.pt>`. O domínio tem de estar **verificado** no Resend (SPF, DKIM e DMARC). |
+| `EMAIL_PROVIDER` | Opcional; `resend` é assumido se `RESEND_API_KEY` existir em produção. `console` só em desenvolvimento. |
+| `WEB_URL` | Já usado nos links dos e-mails (`/verificar-email`, `/redefinir-senha`, `/convites/aceitar`). |
+
+Com entrega real: convites seguem só por e-mail (o token deixa de ser devolvido a quem convida), aceitar um convite recebido por e-mail
+verifica o endereço, e convites sem prova de posse do e-mail exigem e-mail verificado. Os registos de e-mail não guardam o destinatário completo.
+
 ## Primeiro deploy
 
 1. Crie o banco e um papel de aplicação sem superuser; guarde o URL direto como secret `DATABASE_URL_MIGRATE`

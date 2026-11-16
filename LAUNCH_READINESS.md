@@ -42,8 +42,8 @@ com a mesma chave geram 1 concessão; 4 gerações simultâneas com a mesma `Ide
 - CSP sem `script-src` (o Next injeta scripts inline). Para endurecer é preciso CSP com *nonces* num middleware do Next.
 - Limite de taxa das rotas autenticadas por sessão (pesquisa, etc.) é só o do `@nestjs/throttler` em memória nas rotas de auth. Para limites globais por IP é preciso Redis ou WAF (Vercel Firewall).
 - Registo de conta revela se um e-mail existe (`409 email_taken`). Aceite por usabilidade; rever.
-- **Sem verificação de e-mail**, **sem recuperação de senha**, **sem MFA** (ver §5).
-- Convites devolvem o token a quem convida (sem fornecedor de e-mail).
+- **MFA ainda não implementado.** Verificação de e-mail, recuperação e alteração de senha estão implementadas (precisam de `RESEND_API_KEY` + domínio verificado para funcionar em produção).
+- Sem fornecedor de e-mail configurado os convites devolvem o token a quem convida; com `RESEND_API_KEY` o token vai só por e-mail.
 - OpenTelemetry não implementado (CLAUDE.md §2); só Sentry (API). Web sem Sentry.
 - 2FA da conta Vercel/GitHub/Neon/Stripe: ativar (a Vercel já avisou).
 
@@ -68,7 +68,7 @@ com a mesma chave geram 1 concessão; 4 gerações simultâneas com a mesma `Ide
 
 ## 5. Lacunas funcionais que bloqueiam um beta B2B
 
-1. **E-mail transacional** (convites, verificação, recuperação de senha): sem isto, um utilizador que perca a senha fica sem acesso.
+1. **Ligar o e-mail transacional em produção** (Resend + domínio verificado): o código está pronto, mas sem a chave não há recuperação de senha.
 2. **Stripe em produção** (chaves, webhook, Billing Portal, Stripe Tax) e decisão da faturação certificada.
 3. **S3/R2** (catálogo em produção está vazio; sem ele não há previews, originais nem imagens de IA).
 4. **Redis + worker + chave OpenAI** para ligar a geração por IA.

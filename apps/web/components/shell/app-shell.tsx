@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
+import { VerifyBanner } from "./verify-banner";
 import { Topbar } from "./topbar";
 
 export interface ShellUser {
@@ -10,6 +11,7 @@ export interface ShellUser {
   role: string;
   orgId: string;
   organizations: { id: string; name: string; role: string }[];
+  emailVerified: boolean;
 }
 
 export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
@@ -22,6 +24,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: React.
       <Sidebar open={drawer} onClose={() => setDrawer(false)} />
       <div className="min-w-0 lg:ml-62">
         <Topbar user={user} onMenu={() => setDrawer(true)} />
+        {!user.emailVerified && <VerifyBanner />}
         {children}
       </div>
     </div>

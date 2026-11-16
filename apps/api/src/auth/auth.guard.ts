@@ -18,7 +18,7 @@ export function readSessionToken(req: Request): string | null {
 }
 
 export interface AuthedRequest extends Request {
-  user: { id: string; email: string; displayName: string | null };
+  user: { id: string; email: string; displayName: string | null; emailVerifiedAt?: Date | null };
   /** Presente quando o pedido veio por chave de API (autenticada pelo middleware). */
   apiKey?: AuthenticatedKey;
 }

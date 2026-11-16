@@ -9,6 +9,7 @@ import { AllExceptionsFilter } from "./common/http-exception.filter.js";
 import { AuthModule } from "./auth/auth.module.js";
 import { ApiAccessModule } from "./api-access/api-access.module.js";
 import { GdprModule } from "./gdpr/gdpr.module.js";
+import { MailModule } from "./mail/mail.module.js";
 import { AiModule } from "./ai/ai.module.js";
 import { BillingModule } from "./billing/billing.module.js";
 import { LicensingModule } from "./licensing/licensing.module.js";
@@ -25,6 +26,7 @@ import { DatabaseModule } from "./database.module.js";
     LicensingModule,
     BillingModule,
     AiModule,
+    MailModule,
     GdprModule,
     ApiAccessModule,
     ThrottlerModule.forRootAsync({ useFactory: () => [{ ttl: 60_000, limit: Number(process.env.AUTH_RATE_LIMIT ?? 10) }] }),

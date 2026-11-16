@@ -67,3 +67,10 @@ export const createApiKeyBody = z.object({
   expiresInDays: z.number().int().min(1).max(730).optional(),
 });
 export type CreateApiKeyBody = z.infer<typeof createApiKeyBody>;
+
+export const emailSchema = z.email().max(254).transform((e) => e.toLowerCase());
+export const newPasswordSchema = z.string().min(12).max(128);
+export const forgotPasswordBody = z.object({ email: emailSchema });
+export const resetPasswordBody = z.object({ token: z.string().min(20).max(200), password: newPasswordSchema });
+export const verifyEmailBody = z.object({ token: z.string().min(20).max(200) });
+export const changePasswordBody = z.object({ currentPassword: z.string().min(1).max(128), newPassword: newPasswordSchema });

@@ -17,6 +17,7 @@ import {
   isNull,
   creditEntries,
   organizationMembers,
+  organizations,
   users,
   withTenant,
   withUser,
@@ -25,6 +26,7 @@ import {
 import { availableBalance, type CreditEntry } from "@bigstock/billing";
 import { assignableRoles, type InviteBody, type Role } from "@bigstock/contracts";
 import { DB } from "../database.module.js";
+import { EmailService } from "../mail/email.service.js";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
@@ -36,7 +38,10 @@ export interface Actor {
 
 @Injectable()
 export class OrganizationsService {
-  constructor(@Inject(DB) private readonly db: Database) {}
+  constructor(
+    @Inject(DB) private readonly db: Database,
+    private readonly email: EmailService,
+  ) {}
 
   listMembers(orgId: string) {
     return withTenant(this.db, orgId, (tx) =>
@@ -67,7 +72,7 @@ export class OrganizationsService {
     }
     const token = randomBytes(32).toString("base64url");
     const expiresAt = new Date(Date.now() + INVITE_TTL_MS);
-    return withTenant(this.db, orgId, async (tx) => {
+    const created = await withTenant(this.db, orgId, async (tx) => {
       const existing = await tx
         .select({ id: users.id })
         .from(users)
@@ -92,9 +97,18 @@ export class OrganizationsService {
         requestId,
         metadata: { email: body.email, role: body.role },
       });
-      // Sem fornecedor de email ainda: o token é devolvido uma única vez a quem convida.
-      return { id: inv!.id, email: inv!.email, role: inv!.role, expires_at: expiresAt.toISOString(), token };
+      return { id: inv!.id, email: inv!.email, role: inv!.role, expires_at: expiresAt.toISOString() };
     });
+
+    // Com fornecedor de e-mail real o token vai só para o convidado; sem ele (dev) devolve-se a quem convida.
+    const [inviter] = await this.db.select({ name: users.displayName, email: users.email }).from(users).where(eq(users.id, actor.id));
+    const orgName = await withTenant(this.db, orgId, async (tx) => (await tx.select({ n: organizations.name }).from(organizations).where(eq(organizations.id, orgId)))[0]?.n ?? "BIGstock");
+    const delivered = await this.email.sendInvitation(body.email, inviter?.name ?? inviter?.email ?? "Um colega", orgName, token).catch(() => false);
+    if (delivered) {
+      await withTenant(this.db, orgId, (tx) => tx.update(invitations).set({ emailedAt: new Date() }).where(eq(invitations.id, created.id)));
+      return { ...created, emailed: true as const };
+    }
+    return { ...created, emailed: false as const, token };
   }
 
   listInvitations(orgId: string) {
@@ -129,6 +143,13 @@ export class OrganizationsService {
       async (tx) => {
         const [inv] = await tx.select().from(invitations).where(eq(invitations.tokenHash, sha256(token)));
         if (!inv || inv.email !== user.email || inv.acceptedAt || inv.revokedAt || inv.expiresAt <= new Date()) throw invalid();
+        // E-mail verificado: o convite enviado por e-mail prova a posse do endereço; sem isso, exige-se verificação
+        // quando existe entrega real de e-mail (em dev sem fornecedor não há como verificar).
+        const [acct] = await tx.select({ verified: users.emailVerifiedAt }).from(users).where(eq(users.id, user.id));
+        if (!acct?.verified) {
+          if (inv.emailedAt) await tx.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, user.id));
+          else if (this.email.delivers) throw new ForbiddenException({ code: "email_not_verified", message: "Verify your e-mail address before accepting invitations" });
+        }
         await enterTenant(tx, inv.organizationId);
         const [already] = await tx
           .select({ id: organizationMembers.id })

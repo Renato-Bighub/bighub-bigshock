@@ -1,4 +1,5 @@
 import { getActiveOrg } from "@/lib/server-api";
+import { PasswordPanel } from "./password-panel";
 import { PrivacyPanel } from "./privacy-panel";
 
 export default async function SettingsPage() {
@@ -12,9 +13,10 @@ export default async function SettingsPage() {
         <h2 className="mb-3 text-lg font-extrabold">Conta</h2>
         <dl className="grid gap-1 text-sm sm:grid-cols-[120px_1fr]">
           <dt className="font-semibold">Nome</dt><dd>{me.user.display_name ?? "—"}</dd>
-          <dt className="font-semibold">E-mail</dt><dd>{me.user.email}</dd>
+          <dt className="font-semibold">E-mail</dt><dd>{me.user.email} <span className="ml-2 text-xs text-nav/60">{me.user.email_verified ? "verificado" : "não verificado"}</span></dd>
         </dl>
       </section>
+      <PasswordPanel />
       <PrivacyPanel />
     </div>
   );
