@@ -19,7 +19,7 @@ const NAV = [
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 // Só os módulos já implementados estão ativos nesta fase; os restantes módulos chegam com as fases seguintes.
-const AVAILABLE = new Set(["/dashboard", "/explorar", "/gerar", "/downloads", "/historico", "/integracao", "/planos", "/equipa"]);
+const AVAILABLE = new Set(["/dashboard", "/explorar", "/gerar", "/downloads", "/historico", "/integracao", "/planos", "/equipa", "/configuracoes"]);
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();

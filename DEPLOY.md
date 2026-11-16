@@ -78,6 +78,11 @@ Limite por minuto por chave e quota mensal por organização usam contadores em 
 cada pedido faz 2 escritas de contador. A autenticação da chave é guardada em cache 15 s por instância, por isso revogar ou fazer downgrade
 pode demorar até 15 s a valer em todas as instâncias. Não há SDK ainda (V1.1).
 
+## RGPD e retenção
+
+`CRON_SECRET` (projeto da API): segredo longo e aleatório. O Vercel Cron chama `GET /v1/internal/retention` todos os dias às 03:00 UTC
+(definido em `apps/api/vercel.json`) com `Authorization: Bearer $CRON_SECRET`. Detalhes em `docs/RGPD.md`.
+
 ## Primeiro deploy
 
 1. Crie o banco e um papel de aplicação sem superuser; guarde o URL direto como secret `DATABASE_URL_MIGRATE`

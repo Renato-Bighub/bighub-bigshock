@@ -36,5 +36,7 @@ export interface BillingProvider {
   upgradeSubscription(input: { subscriptionId: string; organizationId: string; plan: PlanPrice }): Promise<void>;
   /** Downgrade: só entra em vigor no próximo ciclo de faturação. */
   scheduleDowngrade(input: { subscriptionId: string; organizationId: string; plan: PlanPrice }): Promise<void>;
+  /** Cancelamento imediato (encerramento de organização a pedido do titular dos dados). */
+  cancelSubscription(subscriptionId: string): Promise<void>;
   verifyWebhook(rawBody: Buffer, signature: string): ProviderEvent;
 }

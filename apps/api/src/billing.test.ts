@@ -27,6 +27,7 @@ class FakeProvider implements BillingProvider {
   async createPortalSession(customerId: string) { return { url: `https://portal.test/${customerId}` }; }
   async upgradeSubscription(i: unknown) { this.upgrades.push(i); }
   async scheduleDowngrade(i: unknown) { this.downgrades.push(i); }
+  async cancelSubscription() { /* no-op */ }
   verifyWebhook(raw: Buffer, sig: string): ProviderEvent {
     const e = stripeLib.webhooks.constructEvent(raw, sig, WH_SECRET);
     return { id: e.id, type: e.type, data: { object: e.data.object as unknown as Record<string, unknown> } };

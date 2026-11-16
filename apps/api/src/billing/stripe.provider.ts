@@ -11,6 +11,7 @@ export class DisabledProvider implements BillingProvider {
   createPortalSession(): Promise<{ url: string }> { throw unavailable(); }
   upgradeSubscription(): Promise<void> { throw unavailable(); }
   scheduleDowngrade(): Promise<void> { throw unavailable(); }
+  cancelSubscription(): Promise<void> { throw unavailable(); }
   verifyWebhook(): ProviderEvent { throw unavailable(); }
 }
 
@@ -143,6 +144,10 @@ export class StripeProvider implements BillingProvider {
       ],
     });
     await this.stripe.subscriptions.update(subscriptionId, { metadata: { pending_plan_code: plan.code } });
+  }
+
+  async cancelSubscription(subscriptionId: string) {
+    await this.stripe.subscriptions.cancel(subscriptionId);
   }
 
   verifyWebhook(rawBody: Buffer, signature: string): ProviderEvent {

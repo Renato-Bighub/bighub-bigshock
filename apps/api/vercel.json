@@ -4,8 +4,22 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm --filter @bigstock/contracts --filter @bigstock/billing --filter @bigstock/database build && pnpm --filter @bigstock/api build:vercel",
   "outputDirectory": "public",
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ],
   "functions": {
-    "api/index.js": { "maxDuration": 30, "includeFiles": "dist-bundle/**" }
-  }
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "dist-bundle/**"
+    }
+  },
+  "crons": [
+    {
+      "path": "/v1/internal/retention",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

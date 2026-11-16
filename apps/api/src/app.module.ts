@@ -8,6 +8,7 @@ import { APP_FILTER } from "@nestjs/core";
 import { AllExceptionsFilter } from "./common/http-exception.filter.js";
 import { AuthModule } from "./auth/auth.module.js";
 import { ApiAccessModule } from "./api-access/api-access.module.js";
+import { GdprModule } from "./gdpr/gdpr.module.js";
 import { AiModule } from "./ai/ai.module.js";
 import { BillingModule } from "./billing/billing.module.js";
 import { LicensingModule } from "./licensing/licensing.module.js";
@@ -24,6 +25,7 @@ import { DatabaseModule } from "./database.module.js";
     LicensingModule,
     BillingModule,
     AiModule,
+    GdprModule,
     ApiAccessModule,
     ThrottlerModule.forRootAsync({ useFactory: () => [{ ttl: 60_000, limit: Number(process.env.AUTH_RATE_LIMIT ?? 10) }] }),
     LoggerModule.forRoot({

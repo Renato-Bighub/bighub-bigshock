@@ -1,7 +1,7 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Inject, Injectable, Optional } from "@nestjs/common";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
 export interface SignedDownloadOptions {
@@ -74,6 +74,16 @@ export class StorageService {
       return Buffer.from(await res.Body!.transformToByteArray());
     }
     return readFile(this.path(key));
+  }
+
+  /** Remove um objeto (RGPD: eliminação de conteúdo privado). Inexistente não é erro. */
+  async delete(key: string): Promise<void> {
+    this.assertConfigured();
+    if (this.bucket) {
+      await this.client().send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+      return;
+    }
+    await rm(this.path(key), { force: true });
   }
 
   /**

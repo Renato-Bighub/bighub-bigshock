@@ -27,6 +27,7 @@ const MESSAGES: Record<string, string> = {
   provider_unavailable: "O serviço de IA está indisponível. Os créditos foram devolvidos.",
   enqueue_failed: "Não foi possível iniciar a geração. Os créditos foram devolvidos.",
   api_access_not_in_plan: "O seu plano não inclui acesso à API. Faça upgrade em Planos e Créditos.",
+  sole_owner: "É o único proprietário de uma organização com outros membros. Transfira a propriedade (Equipa) antes de eliminar a conta.",
   no_billing_account: "Ainda não existe conta de faturação.",
   invalid_invitation: "Convite inválido, expirado ou destinado a outro email. Inicie sessão com o email convidado.",
 };

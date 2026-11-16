@@ -35,6 +35,9 @@ export function AuthShell({ title, subtitle, children, footer }: {
             {footer.text}{" "}
             <Link href={footer.href} className="font-semibold text-brand hover:underline">{footer.label}</Link>
           </p>
+          <p className="mt-6 text-center text-xs text-nav/50">
+            <Link href="/termos" className="hover:underline">Termos</Link> · <Link href="/privacidade" className="hover:underline">Privacidade</Link>
+          </p>
         </div>
       </section>
     </main>

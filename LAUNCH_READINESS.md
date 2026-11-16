@@ -59,10 +59,10 @@ com a mesma chave geram 1 concessão; 4 gerações simultâneas com a mesma `Ide
 |---|---|
 | AI Act art. 50 | Fornecedor/modelo por geração em BD; metadados XMP/IPTC + tEXt nos PNG; selo "Gerado por IA" na UI. **Não é C2PA.** |
 | RGPD — minimização, base legal | Parcial: dados mínimos; Sentry e logs sem PII. **Lacuna:** registo de tratamentos, lista de subprocessadores (Vercel, Neon, Stripe, OpenAI, S3/R2, Sentry), DPA e transferências para EUA (cláusulas contratuais-tipo). |
-| RGPD — exportação e eliminação | **Lacuna:** não há endpoints nem processo para exportar/eliminar dados de um utilizador. Registos financeiros e de auditoria são append-only: é preciso política de anonimização (reter o necessário por obrigação legal, anonimizar o resto). |
+| RGPD — exportação e eliminação | **Implementado** (`GET /v1/me/export`, `POST /v1/me/erase`, retenção diária por cron; ver `docs/RGPD.md`). Falta: retificação na interface, DPA assinados, AIPD e prazos de auditoria/backups. |
 | IVA/UE | Preparado via Stripe Tax (`STRIPE_AUTOMATIC_TAX`), **desligado**. Validação de NIF/VAT feita pelo checkout da Stripe. Nada de imposto no frontend. |
 | **Faturação certificada em Portugal** | **Lacuna crítica a validar com contabilista:** faturas da Stripe podem não cumprir a certificação AT (ATCUD, SAF-T). Se não cumprirem, integrar emissor certificado (Moloni, InvoiceXpress, Vendus…). |
-| Termos de licença / ToS / Política de Privacidade | Termos de licença v1 **provisórios**. **Lacuna:** revisão jurídica; páginas públicas de Termos e Privacidade; consentimento (só cookies essenciais hoje → sem banner, mas é preciso informação). |
+| Termos de licença / ToS / Política de Privacidade | Páginas públicas `/termos` e `/privacidade` publicadas como **rascunho** (com campos a completar). Termos de licença v1 provisórios. **Lacuna:** revisão jurídica. Só cookies essenciais → sem banner. |
 | Direitos do catálogo | Regras no backend e na BD (sem `verified_at` não publica; `allows_ai_transform`; remoção não revoga licenças). **Lacuna:** processo editorial e jurídico de verificação e de pedidos de remoção. |
 | Imagens demonstrativas | O site em produção serve miniaturas **sem direitos comerciais**, a pedido do dono do produto. Substituir antes do lançamento. |
 

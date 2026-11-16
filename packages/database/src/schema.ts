@@ -21,6 +21,8 @@ export const organizations = pgTable("organizations", {
   name: text("name").notNull(),
   billingType: text("billing_type", { enum: ["b2c", "b2b"] }).notNull().default("b2c"),
   vatId: text("vat_id"),
+  /** RGPD: organização encerrada (conteúdo privado removido; registos financeiros retidos). */
+  closedAt: timestamp("closed_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 
@@ -33,6 +35,8 @@ export const users = pgTable("users", {
   /** Papel global da plataforma (equipa editorial BIGhub). Nulo para clientes. */
   platformRole: text("platform_role", { enum: ["editor", "admin"] }),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+  /** RGPD: conta eliminada (dados pessoais anonimizados; registos legais retidos). */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
 
