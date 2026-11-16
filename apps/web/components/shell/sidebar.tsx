@@ -18,8 +18,8 @@ const NAV = [
   { href: "/equipa", label: "Equipa", icon: Users },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
-// Só dashboard e equipa existem nesta fase; os restantes módulos chegam com as fases seguintes.
-const AVAILABLE = new Set(["/dashboard", "/equipa"]);
+// Só dashboard, explorar e equipa existem nesta fase; os restantes módulos chegam com as fases seguintes.
+const AVAILABLE = new Set(["/dashboard", "/explorar", "/equipa"]);
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();

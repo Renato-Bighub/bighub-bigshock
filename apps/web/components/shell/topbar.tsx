@@ -30,8 +30,9 @@ export function Topbar({ user, onMenu }: { user: ShellUser; onMenu: () => void }
         <button aria-label="Abrir menu" onClick={onMenu} className="rounded-lg p-2 hover:bg-white/10 lg:hidden">
           <Menu size={26} />
         </button>
-        <form role="search" onSubmit={(e) => e.preventDefault()} className="flex h-11 max-w-[940px] min-w-0 flex-1 overflow-hidden rounded-[9px] bg-white">
+        <form role="search" onSubmit={(e) => { e.preventDefault(); const q = String(new FormData(e.currentTarget).get("q") ?? "").trim(); router.push(q ? `/explorar?q=${encodeURIComponent(q)}` : "/explorar"); }} className="flex h-11 max-w-[940px] min-w-0 flex-1 overflow-hidden rounded-[9px] bg-white">
           <input
+            name="q"
             aria-label="Pesquisar imagens, vetores ou modelos"
             placeholder="Pesquisar imagens, vetores ou modelos..."
             className="min-w-0 flex-1 bg-white px-[17px] text-[15px] text-[#20222a] outline-0 placeholder:text-[#7a7c87]"

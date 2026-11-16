@@ -57,6 +57,27 @@
       "when": 1794790656330,
       "tag": "0007_members_delete_grant",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794791523915,
+      "tag": "0008_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794791524351,
+      "tag": "0009_catalog_search_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794791596338,
+      "tag": "0010_seed_categories",
+      "breakpoints": true
     }
   ]
 }

@@ -31,3 +31,10 @@ export async function api<T = unknown>(path: string, body?: unknown, method: "PO
   if (!res.ok) throw new ApiError(res.status, data.error?.code ?? "error", data.error?.message ?? "Erro");
   return data as T;
 }
+
+export async function apiGet<T>(path: string): Promise<T> {
+  const res = await fetch(`/api${path}`, { credentials: "same-origin" });
+  const data = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } };
+  if (!res.ok) throw new ApiError(res.status, data.error?.code ?? "error", data.error?.message ?? "Erro");
+  return data as T;
+}

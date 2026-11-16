@@ -9,6 +9,7 @@ import {
   uuid,
   jsonb,
   type AnyPgColumn,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 const id = () => uuid("id").primaryKey().defaultRandom();
@@ -28,6 +29,8 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   /** Nullable: utilizadores futuros via SSO não têm senha. Argon2id. */
   passwordHash: text("password_hash"),
+  /** Papel global da plataforma (equipa editorial BIGhub). Nulo para clientes. */
+  platformRole: text("platform_role", { enum: ["editor", "admin"] }),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
@@ -119,4 +122,58 @@ export const invitations = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("invitations_org_idx").on(t.organizationId), index("invitations_email_idx").on(t.email)],
+);
+
+export const categories = pgTable("categories", {
+  slug: text("slug").primaryKey(),
+  namePt: text("name_pt").notNull(),
+  nameEn: text("name_en").notNull(),
+});
+
+/**
+ * Acervo comercial (global, não pertence a nenhuma organização).
+ * As colunas search_pt/search_en (tsvector geradas) existem só na migração SQL.
+ * storage_key é interno e nunca é exposto pela API.
+ */
+export const assets = pgTable(
+  "assets",
+  {
+    id: id(),
+    title: text("title").notNull(),
+    description: text("description"),
+    kind: text("kind", { enum: ["photo", "vector", "illustration"] }).notNull().default("photo"),
+    status: text("status", { enum: ["draft", "published", "unpublished"] }).notNull().default("draft"),
+    categorySlug: text("category_slug").notNull().references(() => categories.slug),
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    allowsAiTransform: boolean("allows_ai_transform").notNull().default(false),
+    previewKey: text("preview_key"),
+    previewContentType: text("preview_content_type"),
+    createdBy: uuid("created_by").references(() => users.id),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("assets_status_published_idx").on(t.status, t.publishedAt, t.id),
+    index("assets_category_idx").on(t.categorySlug),
+  ],
+);
+
+/** Direitos do ativo. Sem verified_at preenchido o ativo nunca pode ser publicado. */
+export const rightsRecords = pgTable(
+  "rights_records",
+  {
+    id: id(),
+    assetId: uuid("asset_id").notNull().references(() => assets.id),
+    rightsHolder: text("rights_holder").notNull(),
+    licenseBasis: text("license_basis").notNull(),
+    modelRelease: boolean("model_release").notNull().default(false),
+    propertyRelease: boolean("property_release").notNull().default(false),
+    notes: text("notes"),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    verifiedBy: uuid("verified_by").references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("rights_records_asset_uq").on(t.assetId)],
 );

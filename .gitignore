@@ -11,3 +11,4 @@ coverage
 # Miniaturas demonstrativas sem direitos de distribuição comercial (ver apps/web/public/images/README.md)
 apps/web/public/images/*
 !apps/web/public/images/README.md
+.storage
