@@ -44,3 +44,24 @@ export const aiGenerationJob = z.object({
   reservationId: uuid,
 });
 export type AiGenerationJob = z.infer<typeof aiGenerationJob>;
+
+export const registerBody = z.object({
+  email: z.email().max(254).transform((e) => e.toLowerCase()),
+  password: z.string().min(12).max(128),
+  displayName: z.string().trim().min(1).max(100).optional(),
+  organizationName: z.string().trim().min(1).max(120),
+});
+export type RegisterBody = z.infer<typeof registerBody>;
+
+export const loginBody = z.object({
+  email: z.email().max(254).transform((e) => e.toLowerCase()),
+  password: z.string().min(1).max(128),
+});
+export type LoginBody = z.infer<typeof loginBody>;
+
+export const meResponse = z.object({
+  user: z.object({ id: uuid, email: z.string(), display_name: z.string().nullable() }),
+  organizations: z.array(z.object({ id: uuid, name: z.string(), role: z.string() })),
+  request_id: z.string(),
+});
+export type MeResponse = z.infer<typeof meResponse>;

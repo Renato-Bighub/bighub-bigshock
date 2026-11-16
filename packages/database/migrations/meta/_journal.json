@@ -15,6 +15,27 @@
       "when": 1794790072235,
       "tag": "0001_append_only_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794790314279,
+      "tag": "0002_tenant_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794790445362,
+      "tag": "0003_users_auth",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794790445817,
+      "tag": "0004_auth_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -26,8 +26,25 @@ export const users = pgTable("users", {
   id: id(),
   email: text("email").notNull().unique(),
   displayName: text("display_name"),
+  /** Nullable: utilizadores futuros via SSO não têm senha. Argon2id. */
+  passwordHash: text("password_hash"),
+  emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   createdAt: createdAt(),
 });
+
+/** Sessões opacas: só o hash SHA-256 do token é guardado, nunca o token. */
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: id(),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+);
 
 export const organizationMembers = pgTable(
   "organization_members",

@@ -1,4 +1,5 @@
 import "reflect-metadata";
+process.env.DATABASE_URL ??= "postgres://localhost:5432/unused";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
