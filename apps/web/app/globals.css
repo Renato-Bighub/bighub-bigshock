@@ -4,8 +4,8 @@
   --color-brand: #e4072d;
   --color-nav: #0b1015;
   --color-surface: #f6f7f9;
-  --font-body: var(--font-body), system-ui, sans-serif;
-  --font-heading: var(--font-heading), system-ui, sans-serif;
+  --font-body: var(--font-dmsans), system-ui, sans-serif;
+  --font-heading: var(--font-manrope), system-ui, sans-serif;
 }
 
-h1, h2, h3 { font-family: var(--font-heading), system-ui, sans-serif; }
+h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.038em; }

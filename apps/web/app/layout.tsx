@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans, Manrope } from "next/font/google";
 import "./globals.css";
 
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-heading" });
-const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-body" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dmsans" });
 
 export const metadata: Metadata = { title: "BIGstock by BIGhub" };
 

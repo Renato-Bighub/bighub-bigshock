@@ -15,12 +15,14 @@ import {
   gt,
   invitations,
   isNull,
+  creditEntries,
   organizationMembers,
   users,
   withTenant,
   withUser,
   type Database,
 } from "@bigstock/database";
+import { availableBalance, type CreditEntry } from "@bigstock/billing";
 import { assignableRoles, type InviteBody, type Role } from "@bigstock/contracts";
 import { DB } from "../database.module.js";
 
@@ -49,6 +51,14 @@ export class OrganizationsService {
         .innerJoin(users, eq(users.id, organizationMembers.userId))
         .where(eq(organizationMembers.organizationId, orgId)),
     );
+  }
+
+  /** Saldo disponível = soma do livro de movimentos (nunca uma coluna). */
+  async creditBalance(orgId: string): Promise<number> {
+    const rows = await withTenant(this.db, orgId, (tx) =>
+      tx.select().from(creditEntries).where(eq(creditEntries.organizationId, orgId)),
+    );
+    return availableBalance(rows as CreditEntry[], new Date());
   }
 
   async invite(orgId: string, actor: Actor, body: InviteBody, requestId: string) {

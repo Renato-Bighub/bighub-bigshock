@@ -2,7 +2,7 @@ import "reflect-metadata";
 process.env.AUTH_RATE_LIMIT = "1000";
 import { type INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { runMigrations } from "@bigstock/database";
+import { createDb, creditEntries, runMigrations } from "@bigstock/database";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "./app.module.js";
@@ -45,6 +45,17 @@ describe.skipIf(!url)("organizações, permissões e convites", () => {
 
   const invite = (orgId: string, cookie: string, email: string, role: string) =>
     http().post(`/v1/organizations/${orgId}/invitations`).set("Cookie", cookie).send({ email, role });
+
+  it("saldo de créditos = soma do livro; só membros leem", async () => {
+    const before = await http().get(`/v1/organizations/${other.orgId}/credits`).set("Cookie", other.cookie);
+    expect(before.body.data.available).toBe(0);
+    const { db, pool } = createDb(url!);
+    await db.insert(creditEntries).values({ organizationId: other.orgId, entryType: "grant", balanceType: "purchased", amount: 250 });
+    await pool.end();
+    const after = await http().get(`/v1/organizations/${other.orgId}/credits`).set("Cookie", other.cookie);
+    expect(after.body.data.available).toBe(250);
+    expect((await http().get(`/v1/organizations/${other.orgId}/credits`).set("Cookie", owner.cookie)).status).toBe(404);
+  });
 
   it("não-membros recebem 404 em organizações alheias", async () => {
     expect((await http().get(`/v1/organizations/${owner.orgId}/members`).set("Cookie", other.cookie)).status).toBe(404);

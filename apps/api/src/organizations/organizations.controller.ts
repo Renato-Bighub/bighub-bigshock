@@ -25,6 +25,13 @@ export class OrganizationsController {
     return { data: await this.orgs.listMembers(req.org.id), request_id: String(req.id) };
   }
 
+  @Get("organizations/:orgId/credits")
+  @UseGuards(OrgGuard)
+  @RequirePermission("credits:read")
+  async credits(@Req() req: OrgRequest) {
+    return { data: { available: await this.orgs.creditBalance(req.org.id) }, request_id: String(req.id) };
+  }
+
   @Post("organizations/:orgId/invitations")
   @UseGuards(OrgGuard)
   @RequirePermission("members:invite")

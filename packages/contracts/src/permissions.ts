@@ -10,14 +10,15 @@ export const permissions = [
   "members:remove",
   "members:change_role",
   "billing:manage",
+  "credits:read",
 ] as const;
 export type Permission = (typeof permissions)[number];
 
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   owner: permissions,
-  admin: ["org:update", "members:read", "members:invite", "members:remove"],
-  billing: ["members:read", "billing:manage"],
-  member: ["members:read"],
+  admin: ["org:update", "members:read", "members:invite", "members:remove", "credits:read"],
+  billing: ["members:read", "billing:manage", "credits:read"],
+  member: ["members:read", "credits:read"],
 };
 
 export const can = (role: Role, permission: Permission): boolean => ROLE_PERMISSIONS[role].includes(permission);
