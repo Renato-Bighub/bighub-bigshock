@@ -54,3 +54,19 @@ export const rightsBody = z.object({
   verified: z.boolean().default(false),
 });
 export type RightsBody = z.infer<typeof rightsBody>;
+
+export const licenseBody = z.object({ assetId: z.uuid() });
+export type LicenseBody = z.infer<typeof licenseBody>;
+
+export const licenseListQuery = z.object({
+  cursor: z.string().max(500).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(24),
+});
+
+export interface LicenseDto {
+  id: string;
+  created_at: string;
+  license_type: string;
+  terms_version: string;
+  asset: Pick<AssetDto, "id" | "title" | "kind" | "width" | "height" | "preview_url">;
+}

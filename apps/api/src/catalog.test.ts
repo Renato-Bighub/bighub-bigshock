@@ -46,6 +46,8 @@ describe.skipIf(!url)("catálogo e regras editoriais", () => {
     http().put(`/v1/admin/assets/${id}/rights`).set("Cookie", cookie).send({ rightsHolder: "BIGhub", licenseBasis: "Contrato de autor", verified });
   const preview = (id: string) => http().put(`/v1/admin/assets/${id}/preview`).set("Cookie", editor).set("Content-Type", "image/png").send(PNG);
 
+  const original = (id: string) => http().put(`/v1/admin/assets/${id}/original`).set("Cookie", editor).set("Content-Type", "image/png").send(PNG);
+
   beforeAll(async () => {
     await runMigrations(url!);
     const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -74,6 +76,7 @@ describe.skipIf(!url)("catálogo e regras editoriais", () => {
   it("ativo sem direitos verificados nunca é publicado (serviço e base de dados)", async () => {
     const id = await newAsset(`Sem direitos ${u}`);
     expect((await preview(id)).status).toBe(204);
+    expect((await original(id)).status).toBe(204);
     const noRights = await http().post(`/v1/admin/assets/${id}/publish`).set("Cookie", editor);
     expect(noRights.status).toBe(409);
     expect(noRights.body.error.code).toBe("rights_not_verified");
@@ -92,6 +95,7 @@ describe.skipIf(!url)("catálogo e regras editoriais", () => {
     const food = await newAsset(`Massa ${u}`, { category: "alimentacao", tags: [u, "massa"] });
     for (const id of [vine, food]) {
       await preview(id);
+      await original(id);
       expect((await rights(id, admin, true)).status).toBe(204);
       expect((await http().post(`/v1/admin/assets/${id}/publish`).set("Cookie", editor)).status).toBe(204);
     }
@@ -141,6 +145,7 @@ describe.skipIf(!url)("catálogo e regras editoriais", () => {
   it("retirar a verificação dos direitos despublica o ativo", async () => {
     const id = await newAsset("Direitos revogados");
     await preview(id);
+    await original(id);
     await rights(id, admin, true);
     await http().post(`/v1/admin/assets/${id}/publish`).set("Cookie", editor).expect(204);
     await rights(id, editor, false);

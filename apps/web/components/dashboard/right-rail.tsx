@@ -1,3 +1,5 @@
+import type { LicenseDto } from "@bigstock/contracts";
+import Link from "next/link";
 import { ChevronRight, Code2, Coins, Crown, Download, History, Plus, ShoppingCart, Sparkles, Zap } from "lucide-react";
 
 const ROLES: Record<string, string> = { owner: "Proprietário", admin: "Administrador", member: "Membro", billing: "Faturação" };
@@ -21,7 +23,7 @@ const ACTIONS = [
   { icon: History, label: "Ver histórico de geração" },
 ];
 
-export function RightRail({ orgName, role, credits }: { orgName: string; role: string; credits: number | null }) {
+export function RightRail({ orgName, role, credits, recent }: { orgName: string; role: string; credits: number | null; recent: LicenseDto[] }) {
   const fmt = (n: number) => new Intl.NumberFormat("pt-PT").format(n);
   return (
     <aside className="flex min-w-0 flex-col gap-[13px]">
@@ -56,7 +58,23 @@ export function RightRail({ orgName, role, credits }: { orgName: string; role: s
       </Card>
 
       <Card icon={<Download size={20} className="text-brand" />} title="Downloads recentes">
-        <p className="m-0 py-2 text-[13px] text-[#5b616c]">Ainda sem downloads. Os seus ficheiros licenciados aparecerão aqui.</p>
+        {recent.length === 0 ? (
+          <p className="m-0 py-2 text-[13px] text-[#5b616c]">Ainda sem downloads. Os seus ficheiros licenciados aparecerão aqui.</p>
+        ) : (
+          <ul className="space-y-2">
+            {recent.map((l) => (
+              <li key={l.id} className="flex items-center gap-2.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api${l.asset.preview_url}`} alt="" className="h-11 w-14 shrink-0 rounded-md bg-nav object-cover" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-bold">{l.asset.title}</p>
+                  <p className="text-[11px] text-[#5b616c]">{new Date(l.created_at).toLocaleDateString("pt-PT")}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link href="/downloads" className="mt-3 block text-[13px] font-bold text-[#c5001f] hover:underline">Ver todos</Link>
       </Card>
     </aside>
   );

@@ -63,13 +63,15 @@ async function main() {
       .returning();
     const key = `previews/${a!.id}.${EXT[type]}`;
     await storage.put(key, data);
+    const originalKey = `originals/${a!.id}.${EXT[type]}`;
+    await storage.put(originalKey, data); // dev: o "original" é o mesmo ficheiro do preview
     await db.insert(rightsRecords).values({
       assetId: a!.id,
       rightsHolder: "DEV-SEED (sem direitos reais)",
       licenseBasis: "Apenas desenvolvimento; não licenciável",
       verifiedAt: new Date(),
     });
-    await db.update(assets).set({ previewKey: key, previewContentType: type, status: "published", publishedAt: new Date() }).where(eq(assets.id, a!.id));
+    await db.update(assets).set({ previewKey: key, previewContentType: type, originalKey, originalContentType: type, originalBytes: data.length, status: "published", publishedAt: new Date() }).where(eq(assets.id, a!.id));
     created++;
   }
   console.warn(`seed: ${created} ativos criados`);

@@ -143,6 +143,19 @@ export class CatalogService {
     await this.audit(actorId, "asset.preview", id, requestId);
   }
 
+  async setOriginal(actorId: string, id: string, data: Buffer, requestId: string) {
+    const a = await this.requireAsset(id);
+    const type = sniffImage(data);
+    if (!type) throw new BadRequestException({ code: "invalid_image", message: "Original must be JPEG, PNG or WebP" });
+    const key = `originals/${a.id}-${randomUUID()}.${EXT[type]}`;
+    await this.storage.put(key, data);
+    await this.db
+      .update(assets)
+      .set({ originalKey: key, originalContentType: type, originalBytes: data.length })
+      .where(eq(assets.id, id));
+    await this.audit(actorId, "asset.original", id, requestId);
+  }
+
   async setRights(actor: { id: string; platformRole: "editor" | "admin" }, id: string, body: RightsBody, requestId: string) {
     await this.requireAsset(id);
     if (body.verified && actor.platformRole !== "admin") {
@@ -169,6 +182,7 @@ export class CatalogService {
   async publish(actorId: string, id: string, requestId: string) {
     const a = await this.requireAsset(id);
     if (!a.previewKey) throw new ConflictException({ code: "preview_missing", message: "Asset has no preview" });
+    if (!a.originalKey) throw new ConflictException({ code: "original_missing", message: "Asset has no original file" });
     const [rights] = await this.db.select().from(rightsRecords).where(eq(rightsRecords.assetId, id));
     if (!rights?.verifiedAt) {
       throw new ConflictException({ code: "rights_not_verified", message: "Asset rights are not verified" });

@@ -19,10 +19,15 @@ const MESSAGES: Record<string, string> = {
 export const errorMessage = (e: unknown) =>
   e instanceof ApiError ? (MESSAGES[e.code] ?? e.message) : "Não foi possível contactar o servidor.";
 
-export async function api<T = unknown>(path: string, body?: unknown, method: "POST" | "PATCH" | "DELETE" = "POST"): Promise<T> {
+export async function api<T = unknown>(
+  path: string,
+  body?: unknown,
+  method: "POST" | "PATCH" | "DELETE" = "POST",
+  extraHeaders: Record<string, string> = {},
+): Promise<T> {
   const res = await fetch(`/api${path}`, {
     method,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...extraHeaders },
     body: body === undefined ? undefined : JSON.stringify(body),
     credentials: "same-origin",
   });

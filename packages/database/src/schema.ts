@@ -150,6 +150,10 @@ export const assets = pgTable(
     allowsAiTransform: boolean("allows_ai_transform").notNull().default(false),
     previewKey: text("preview_key"),
     previewContentType: text("preview_content_type"),
+    /** Ficheiro original licenciável (interno, só sai por download assinado). */
+    originalKey: text("original_key"),
+    originalContentType: text("original_content_type"),
+    originalBytes: integer("original_bytes"),
     createdBy: uuid("created_by").references(() => users.id),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: createdAt(),
@@ -176,4 +180,46 @@ export const rightsRecords = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("rights_records_asset_uq").on(t.assetId)],
+);
+
+/** Versões dos termos de licença. Append-only: cada grant aponta para a versão vigente na compra. */
+export const licenseTermsVersions = pgTable("license_terms_versions", {
+  id: id(),
+  version: text("version").notNull().unique(),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  effectiveFrom: timestamp("effective_from", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Licença concedida a uma organização. Append-only e nunca revogada automaticamente. */
+export const licenseGrants = pgTable(
+  "license_grants",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    assetId: uuid("asset_id").notNull().references(() => assets.id),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    termsVersionId: uuid("terms_version_id").notNull().references(() => licenseTermsVersions.id),
+    licenseType: text("license_type").notNull().default("standard"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("license_grants_idem_uq").on(t.organizationId, t.idempotencyKey),
+    uniqueIndex("license_grants_org_asset_uq").on(t.organizationId, t.assetId),
+    index("license_grants_org_created_idx").on(t.organizationId, t.createdAt, t.id),
+  ],
+);
+
+/** Registo auditável de cada download efetuado. Append-only. */
+export const downloadEvents = pgTable(
+  "download_events",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    grantId: uuid("grant_id").notNull().references(() => licenseGrants.id),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index("download_events_org_idx").on(t.organizationId, t.createdAt)],
 );

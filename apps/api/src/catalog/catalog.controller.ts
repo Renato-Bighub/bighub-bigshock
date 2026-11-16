@@ -66,6 +66,15 @@ export class AdminCatalogController {
     await this.catalog.setPreview(req.user.id, uuid(id), body, String(req.id));
   }
 
+  @Put(":id/original")
+  @HttpCode(204)
+  async original(@Param("id") id: string, @Body() body: unknown, @Req() req: PlatformRequest) {
+    if (!Buffer.isBuffer(body) || body.length === 0) {
+      throw new BadRequestException({ code: "invalid_image", message: "Send the image as the raw request body (image/jpeg, image/png or image/webp)" });
+    }
+    await this.catalog.setOriginal(req.user.id, uuid(id), body, String(req.id));
+  }
+
   @Put(":id/rights")
   @HttpCode(204)
   async rights(@Param("id") id: string, @Body() body: unknown, @Req() req: PlatformRequest) {
