@@ -39,7 +39,7 @@ export function AuthShell({ title, subtitle, children, footer }: {
         <p className="relative z-10 text-sm text-white/60"><T>Plataforma europeia · RGPD · EUR</T></p>
       </section>
       <section className="relative flex items-center justify-center px-6 py-12">
-        <div className="absolute top-4 right-4"><LanguageSwitcher variant="light" /></div>
+        <div className="absolute top-4 right-4"><LanguageSwitcher /></div>
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden"><Brand /></div>
           <h1 className="text-2xl font-extrabold">{title}</h1>

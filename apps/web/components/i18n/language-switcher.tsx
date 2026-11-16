@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, Globe, X } from "lucide-react";
+import { Check, ChevronDown, Globe } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LOCALES, LOCALE_COOKIE, type Locale } from "@/lib/i18n/config";
-import { T, useLocale, useT } from "./provider";
+import { useLocale, useT } from "./provider";
 
 export function setLocaleCookie(code: Locale) {
   const host = window.location.hostname;
@@ -12,18 +12,21 @@ export function setLocaleCookie(code: Locale) {
   document.cookie = `${LOCALE_COOKIE}=${code}; path=/; max-age=31536000; samesite=lax${domain}`;
 }
 
-/** Botão + modal de seleção de idioma (PT, EN, ES, FR, DE). */
-export function LanguageSwitcher({ variant = "dark" }: { variant?: "dark" | "light" }) {
+/** Seletor de idioma (PT, EN, ES, FR, DE), no mesmo desenho do seletor do site bigstock.tech. */
+export function LanguageSwitcher() {
   const locale = useLocale();
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onClick = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onClick);
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("mousedown", onClick); };
   }, [open]);
 
   function choose(code: Locale) {
@@ -33,41 +36,39 @@ export function LanguageSwitcher({ variant = "dark" }: { variant?: "dark" | "lig
   }
 
   return (
-    <>
+    <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen((v) => !v)}
         aria-label={t("Alterar idioma")}
-        className={`flex items-center gap-1.5 rounded-lg p-2 text-sm font-bold uppercase ${variant === "dark" ? "text-white hover:bg-white/10" : "text-nav hover:bg-nav/5"}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="flex items-center gap-2 rounded-xl border border-[#e0e3e9] bg-white px-3.5 py-2 text-sm font-bold text-nav shadow-sm transition hover:border-nav/30"
       >
-        <Globe size={20} /> <span className="hidden sm:inline">{locale}</span>
+        <Globe size={19} strokeWidth={1.8} />
+        <span className="uppercase">{locale}</span>
+        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div role="dialog" aria-modal="true" aria-label={t("Escolher idioma")} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" onClick={() => setOpen(false)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 text-nav shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-extrabold"><T>Escolher idioma</T></h2>
-              <button type="button" onClick={() => setOpen(false)} aria-label={t("Fechar")} className="rounded-full p-1.5 hover:bg-surface"><X size={18} /></button>
-            </div>
-            <ul className="space-y-1.5">
-              {LOCALES.map((l) => (
-                <li key={l.code}>
-                  <button
-                    type="button"
-                    onClick={() => choose(l.code)}
-                    aria-current={l.code === locale}
-                    className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-sm font-semibold transition ${l.code === locale ? "border-brand bg-brand/5" : "border-nav/10 hover:border-nav/30"}`}
-                  >
-                    <span className="text-xl" aria-hidden>{l.flag}</span>
-                    <span className="flex-1">{l.native}</span>
-                    {l.code === locale && <Check size={17} className="text-brand" />}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <ul role="listbox" aria-label={t("Escolher idioma")} className="absolute top-[calc(100%+8px)] right-0 z-[100] w-[240px] rounded-2xl border border-[#e7e9ed] bg-white p-2 text-nav shadow-[0_14px_48px_rgba(0,0,0,.17)]">
+          {LOCALES.map((l) => {
+            const on = l.code === locale;
+            return (
+              <li key={l.code} role="option" aria-selected={on}>
+                <button
+                  type="button"
+                  onClick={() => choose(l.code)}
+                  className={`flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-[15px] font-bold transition ${on ? "bg-brand/8 text-brand" : "hover:bg-surface"}`}
+                >
+                  <span className={`w-7 text-xs font-bold uppercase ${on ? "text-brand" : "text-nav/40"}`}>{l.code}</span>
+                  <span className="flex-1">{l.native}</span>
+                  {on && <Check size={18} />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </>
+    </div>
   );
 }
