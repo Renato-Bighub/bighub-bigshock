@@ -1,0 +1,6 @@
+# Miniaturas demonstrativas sem direitos: nunca vão para a Vercel
+apps/web/public/images/*.jpg
+apps/web/public/images/*.png
+.storage
+.env*
+!.env.example

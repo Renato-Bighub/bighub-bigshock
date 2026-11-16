@@ -25,7 +25,7 @@ Os comandos de instalação e build estão nos `vercel.json` de cada app.
 
 | Variável | Notas |
 |---|---|
-| `DATABASE_URL` | URL pooled. O utilizador **não** pode ser superuser nem ter `BYPASSRLS` (senão o isolamento por organização é ignorado). |
+| `APP_DATABASE_URL` | URL pooled do papel de aplicação (`bigstock_api`, membro de `bigstock_app`). Tem precedência sobre `DATABASE_URL`. A integração Neon da Vercel define `DATABASE_URL` com o utilizador **dono**; não o use para a API. O papel **não** pode ser superuser nem ter `BYPASSRLS` (senão o isolamento por organização é ignorado). |
 | `DOWNLOAD_URL_SECRET` | Segredo longo e aleatório (obrigatório em produção). |
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | R2: `S3_REGION=auto` e `S3_ENDPOINT=https://<conta>.r2.cloudflarestorage.com`. |
 | `LOG_LEVEL`, `DB_POOL_MAX` | Opcionais (por omissão 3 ligações por instância na Vercel). |
@@ -56,3 +56,9 @@ O browser fala só com o domínio do web: `/api/*` é reescrito para a API, por 
 - **Downloads** já redirecionam para URL assinado de 60 s do S3/R2, por isso não têm esse limite.
 - **Rate limit** (`@nestjs/throttler`) é em memória por instância; para limites globais precisa de Redis (Fase 5).
 - **Arranque a frio** do Nest: espere algumas centenas de ms no primeiro pedido de cada instância.
+
+## Deploy pela CLI
+
+`vercel deploy --prod` envia a árvore de trabalho (não só o que está commitado). O `.vercelignore` na raiz
+exclui as imagens demonstrativas sem direitos (`apps/web/public/images/*.jpg`), o `.storage` e os `.env*`.
+Para deploys automáticos a cada push use `vercel git connect` em cada projeto.

@@ -9,8 +9,9 @@ export const DB = Symbol("DB");
     {
       provide: DB,
       useFactory: (): Database => {
-        const url = process.env.DATABASE_URL;
-        if (!url) throw new Error("DATABASE_URL is required");
+        // APP_DATABASE_URL = papel da aplicação (sem BYPASSRLS); DATABASE_URL é o fallback em desenvolvimento.
+        const url = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
+        if (!url) throw new Error("APP_DATABASE_URL or DATABASE_URL is required");
         return createDb(url).db;
       },
     },
