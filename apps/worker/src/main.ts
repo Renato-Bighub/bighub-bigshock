@@ -1,9 +1,5 @@
-import "reflect-metadata";
-import { NestFactory } from "@nestjs/core";
-import { WorkerModule } from "./worker.module.js";
+// Worker de IA: processo de longa duração (não corre na Vercel).
+// Reutiliza os módulos da API (monólito modular): mesma lógica de créditos e conformidade.
+import { startWorker } from "@bigstock/api/worker";
 
-async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(WorkerModule);
-  app.enableShutdownHooks();
-}
-void bootstrap();
+await startWorker();

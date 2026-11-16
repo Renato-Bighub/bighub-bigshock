@@ -70,3 +70,42 @@ export interface LicenseDto {
   terms_version: string;
   asset: Pick<AssetDto, "id" | "title" | "kind" | "width" | "height" | "preview_url">;
 }
+
+// ---------------------------------------------------------------------------
+// IA (Fase 4)
+// ---------------------------------------------------------------------------
+export const aiSizes = ["1024x1024", "1536x1024", "1024x1536"] as const;
+export const aiQualities = ["standard", "high"] as const;
+
+export const aiRequestBody = z.object({
+  prompt: z.string().trim().min(3).max(2000),
+  size: z.enum(aiSizes).default("1024x1024"),
+  quality: z.enum(aiQualities).default("standard"),
+  /** Edição: ativo licenciado pela organização e com allows_ai_transform. */
+  referenceAssetId: z.uuid().optional(),
+});
+export type AiRequestBody = z.infer<typeof aiRequestBody>;
+
+export const aiJobBody = aiRequestBody.extend({
+  /** Custo que o utilizador viu antes de confirmar. O backend recalcula e recusa se divergir. */
+  expectedCostCredits: z.number().int().positive(),
+});
+export type AiJobBody = z.infer<typeof aiJobBody>;
+
+export interface AiJobDto {
+  id: string;
+  kind: "generate" | "edit";
+  prompt: string;
+  size: string;
+  quality: string;
+  status: "queued" | "running" | "succeeded" | "failed";
+  cost_credits: number;
+  error_code: string | null;
+  /** Conteúdo sintético: sinalizado na interface (AI Act art. 50). */
+  ai_generated: true;
+  provider: string | null;
+  model: string | null;
+  output_url: string | null;
+  created_at: string;
+  finished_at: string | null;
+}

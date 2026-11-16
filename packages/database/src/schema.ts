@@ -320,3 +320,48 @@ export const providerEvents = pgTable("provider_events", {
   type: text("type").notNull(),
   receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Geração por IA (Fase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Trabalho de geração/edição de imagem. Privado da organização: nunca entra no catálogo público.
+ * Idempotência por (organization_id, idempotency_key). A reserva de créditos usa reservation_id.
+ */
+export const aiJobs = pgTable(
+  "ai_jobs",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    kind: text("kind", { enum: ["generate", "edit"] }).notNull(),
+    prompt: text("prompt").notNull(),
+    size: text("size").notNull(),
+    quality: text("quality").notNull(),
+    referenceAssetId: uuid("reference_asset_id").references(() => assets.id),
+    status: text("status", { enum: ["queued", "running", "succeeded", "failed"] }).notNull().default("queued"),
+    costCredits: integer("cost_credits").notNull(),
+    reservationId: uuid("reservation_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    /** Conformidade AI Act art. 50: fornecedor e modelo usados em cada geração. */
+    provider: text("provider"),
+    model: text("model"),
+    errorCode: text("error_code"),
+    outputKey: text("output_key"),
+    outputContentType: text("output_content_type"),
+    width: integer("width"),
+    height: integer("height"),
+    /** Metadados de proveniência preservados (também embutidos no ficheiro quando possível). */
+    provenance: jsonb("provenance"),
+    createdAt: createdAt(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("ai_jobs_idem_uq").on(t.organizationId, t.idempotencyKey),
+    index("ai_jobs_org_created_idx").on(t.organizationId, t.createdAt, t.id),
+    index("ai_jobs_org_status_idx").on(t.organizationId, t.status),
+  ],
+);

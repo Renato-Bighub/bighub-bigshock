@@ -17,6 +17,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (typeof body === "object" && body !== null) {
         const b = body as { code?: string; message?: string };
         code = b.code ?? (status === 429 ? "rate_limited" : code);
+        const retry = (body as { retryAfter?: number }).retryAfter;
+        if (typeof retry === "number") res.setHeader("Retry-After", String(retry));
         message = typeof b.message === "string" ? b.message : message;
       }
     }

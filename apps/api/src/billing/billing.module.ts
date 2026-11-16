@@ -24,3 +24,11 @@ import { WebhookService } from "./webhook.service.js";
   exports: [CreditsService, EntitlementsService, BILLING_PROVIDER],
 })
 export class BillingModule {}
+
+/** Subconjunto para o worker: só serviços (sem controladores nem guards HTTP). */
+@Global()
+@Module({
+  providers: [CreditsService, EntitlementsService, { provide: BILLING_PROVIDER, useFactory: (): BillingProvider => createProviderFromEnv() }],
+  exports: [CreditsService, EntitlementsService],
+})
+export class BillingWorkerModule {}

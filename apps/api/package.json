@@ -22,6 +22,7 @@
     "@nestjs/platform-express": "^12.5.0",
     "@nestjs/throttler": "^6.7.1",
     "@node-rs/argon2": "^2.2.2",
+    "bullmq": "^6.7.6",
     "nestjs-pino": "^5.3.1",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
@@ -40,5 +41,11 @@
     "supertest": "^7.3.2",
     "unplugin-swc": "^2.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    "./worker": {
+      "types": "./dist/worker-entry.d.ts",
+      "default": "./dist/worker-entry.js"
+    }
+  }
 }

@@ -6,6 +6,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_FILTER } from "@nestjs/core";
 import { AllExceptionsFilter } from "./common/http-exception.filter.js";
 import { AuthModule } from "./auth/auth.module.js";
+import { AiModule } from "./ai/ai.module.js";
 import { BillingModule } from "./billing/billing.module.js";
 import { LicensingModule } from "./licensing/licensing.module.js";
 import { CatalogModule } from "./catalog/catalog.module.js";
@@ -20,6 +21,7 @@ import { DatabaseModule } from "./database.module.js";
     CatalogModule,
     LicensingModule,
     BillingModule,
+    AiModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: Number(process.env.AUTH_RATE_LIMIT ?? 10) }]),
     LoggerModule.forRoot({
       pinoHttp: {
