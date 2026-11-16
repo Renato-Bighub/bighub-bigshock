@@ -23,7 +23,7 @@ const ACTIONS = [
   { icon: History, label: "Ver histórico de geração" },
 ];
 
-export function RightRail({ orgName, role, credits, recent }: { orgName: string; role: string; credits: number | null; recent: LicenseDto[] }) {
+export function RightRail({ orgName, role, credits, planName, recent }: { orgName: string; role: string; credits: number | null; planName: string | null; recent: LicenseDto[] }) {
   const fmt = (n: number) => new Intl.NumberFormat("pt-PT").format(n);
   return (
     <aside className="flex min-w-0 flex-col gap-[13px]">
@@ -31,20 +31,20 @@ export function RightRail({ orgName, role, credits, recent }: { orgName: string;
         <div className="flex items-center justify-between gap-2.5">
           <div className="min-w-0">
             <strong className="block truncate font-heading text-[22px] font-extrabold tracking-[-0.06em]">{orgName}</strong>
-            <small className="mt-1 block text-[11px] leading-snug text-[#5b616c]">{ROLES[role] ?? role} · plano em breve</small>
+            <small className="mt-1 block text-[11px] leading-snug text-[#5b616c]">{ROLES[role] ?? role} · Plano {planName ?? "—"}</small>
           </div>
-          <button disabled title="Disponível em breve" className="cursor-not-allowed rounded-[9px] border border-[#d0002b] bg-white px-[15px] py-2.5 text-[13px] font-extrabold text-[#d0002b] opacity-50">
+          <Link href="/planos" className="rounded-[9px] border border-[#d0002b] bg-white px-[15px] py-2.5 text-[13px] font-extrabold text-[#d0002b] hover:bg-[#fff0f3]">
             Gerir plano
-          </button>
+          </Link>
         </div>
       </Card>
 
       <Card icon={<Coins size={21} className="text-brand" />} title="Créditos de IA">
         <div className="my-2 font-heading text-[29px] font-extrabold tracking-[-0.055em]">{credits === null ? "—" : fmt(credits)}</div>
         <div className="mb-[18px] text-[11px] text-[#343943]">Disponíveis</div>
-        <button disabled title="Disponível em breve" className="flex min-h-[39px] w-full cursor-not-allowed items-center justify-center gap-2 rounded-[9px] bg-brand text-[13px] font-extrabold text-white opacity-60">
+        <Link href="/planos#creditos" className="flex min-h-[39px] w-full items-center justify-center gap-2 rounded-[9px] bg-brand text-[13px] font-extrabold text-white hover:bg-[#bd0024]">
           <ShoppingCart size={17} /> Comprar créditos
-        </button>
+        </Link>
       </Card>
 
       <Card icon={<Zap size={21} className="text-brand" />} title="Ações rápidas">

@@ -38,6 +38,23 @@ Os comandos de instalação e build estão nos `vercel.json` de cada app.
 
 O browser fala só com o domínio do web: `/api/*` é reescrito para a API, por isso o cookie de sessão fica na mesma origem.
 
+## Pagamentos (Stripe)
+
+Variáveis do projeto `bigstock-api` (sem `STRIPE_SECRET_KEY` a faturação responde 503 `billing_unavailable`; o resto da API funciona):
+
+| Variável | Notas |
+|---|---|
+| `STRIPE_SECRET_KEY` | Chave secreta (`sk_test_…` em testes). |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_…` do endpoint abaixo. Obrigatória se a chave existir. |
+| `STRIPE_AUTOMATIC_TAX` | `true` só depois de configurar o Stripe Tax (morada de origem e registos de IVA). Ativa também a recolha de NIF/VAT e morada no checkout. |
+| `WEB_URL` | URL público do web, usado nos redirecionamentos do checkout (ex.: `https://bighub-bigshock.vercel.app`). |
+
+Webhook a criar no Stripe: `POST https://<api>/v1/webhooks/stripe` com os eventos
+`checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`,
+`customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
+Os preços são criados no Stripe automaticamente (por `lookup_key`) a partir da tabela `plans`; a nossa BD é a fonte única.
+Ative no Stripe o **Billing Portal** (Settings → Billing → Customer portal) para o botão "Gerir faturação".
+
 ## Primeiro deploy
 
 1. Crie o banco e um papel de aplicação sem superuser; guarde o URL direto como secret `DATABASE_URL_MIGRATE`

@@ -13,6 +13,13 @@ const MESSAGES: Record<string, string> = {
   last_owner: "A organização tem de manter pelo menos um proprietário.",
   forbidden: "Não tem permissão para esta ação.",
   not_found: "Recurso não encontrado.",
+  billing_unavailable: "A faturação ainda não está configurada neste ambiente.",
+  download_quota_exceeded: "Atingiu o limite de licenças do seu plano neste período. Faça upgrade em Planos e Créditos.",
+  insufficient_credits: "Créditos insuficientes. Compre mais créditos em Planos e Créditos.",
+  subscription_exists: "A organização já tem uma assinatura. Use \"Fazer upgrade\" ou \"Mudar no próximo ciclo\".",
+  no_active_subscription: "Não existe uma assinatura ativa.",
+  use_portal: "Para mudar o intervalo de faturação use o portal de faturação.",
+  no_billing_account: "Ainda não existe conta de faturação.",
   invalid_invitation: "Convite inválido, expirado ou destinado a outro email. Inicie sessão com o email convidado.",
 };
 

@@ -16,6 +16,15 @@ export async function get<T>(path: string): Promise<T | null> {
 }
 
 export const getMe = cache(() => get<MeResponse>("/v1/auth/me"));
+export interface BillingSummary {
+  plan_code: string;
+  plan_name: string;
+  subscription: { status: string; interval: string; current_period_end: string; cancel_at_period_end: boolean; pending_plan_code: string | null } | null;
+  downloads: { used: number; quota: number; window_end: string };
+  credits: { available: number; included_per_period: number };
+  has_billing_account: boolean;
+}
+export const getBilling = (orgId: string) => get<{ data: BillingSummary }>(`/v1/organizations/${orgId}/billing`);
 export const getCredits = (orgId: string) => get<{ data: { available: number } }>(`/v1/organizations/${orgId}/credits`);
 
 export const ORG_COOKIE = "bs_org";

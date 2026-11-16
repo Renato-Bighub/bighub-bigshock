@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, Check, ChevronDown, Crown, LogOut, Menu, Search, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
@@ -71,9 +72,9 @@ export function Topbar({ user, onMenu }: { user: ShellUser; onMenu: () => void }
                   ))}
                 </div>
               )}
-              <button disabled className="flex w-full cursor-not-allowed items-center gap-2.5 rounded-[7px] p-[11px_10px] text-[13px] opacity-50">
+              <Link href="/planos" onClick={() => setOpen(false)} className="flex w-full items-center gap-2.5 rounded-[7px] p-[11px_10px] text-[13px] hover:bg-[#f4f5f7]">
                 <Crown size={17} /> Gerir plano
-              </button>
+              </Link>
               <button onClick={logout} className="flex w-full items-center gap-2.5 rounded-[7px] p-[11px_10px] text-[13px] hover:bg-[#f4f5f7]">
                 <LogOut size={17} /> Terminar sessão
               </button>

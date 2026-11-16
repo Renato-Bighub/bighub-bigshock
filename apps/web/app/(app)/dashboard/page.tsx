@@ -2,14 +2,15 @@ import { Hero } from "@/components/dashboard/hero";
 import { RightRail } from "@/components/dashboard/right-rail";
 import { Categories, FeatureCards, NewImages } from "@/components/dashboard/sections";
 import type { LicenseDto } from "@bigstock/contracts";
-import { get, getActiveOrg, getCredits } from "@/lib/server-api";
+import { get, getActiveOrg, getBilling } from "@/lib/server-api";
 
 export default async function Dashboard() {
   const { org } = await getActiveOrg();
   const [creditsRes, recentRes] = org
-    ? await Promise.all([getCredits(org.id), get<{ data: LicenseDto[] }>(`/v1/organizations/${org.id}/licenses?limit=3`)])
+    ? await Promise.all([getBilling(org.id), get<{ data: LicenseDto[] }>(`/v1/organizations/${org.id}/licenses?limit=3`)])
     : [null, null];
-  const credits = creditsRes?.data.available ?? null;
+  const credits = creditsRes?.data.credits.available ?? null;
+  const planName = creditsRes?.data.plan_name ?? null;
   return (
     <div className="mx-auto grid max-w-[1880px] items-start gap-x-[23px] gap-y-[23px] px-[19px] pt-[18px] pb-[30px] xl:grid-cols-[minmax(0,1fr)_338px]">
       <main className="min-w-0">
@@ -18,7 +19,7 @@ export default async function Dashboard() {
         <Categories />
         <NewImages />
       </main>
-      <RightRail orgName={org?.name ?? "—"} role={org?.role ?? ""} credits={credits} recent={recentRes?.data ?? []} />
+      <RightRail orgName={org?.name ?? "—"} role={org?.role ?? ""} credits={credits} planName={planName} recent={recentRes?.data ?? []} />
     </div>
   );
 }
