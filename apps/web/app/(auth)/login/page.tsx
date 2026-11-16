@@ -1,12 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AuthShell, Field, SubmitButton } from "@/components/auth-shell";
 import { api, errorMessage } from "@/lib/api";
+import { safeNext } from "@/lib/next-url";
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
+  const search = useSearchParams();
+  const next = safeNext(search.get("next"));
+  const suffix = search.get("next") ? `?next=${encodeURIComponent(next)}` : "";
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -17,7 +22,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await api("/v1/auth/login", { email: f.get("email"), password: f.get("password") });
-      router.push("/dashboard");
+      router.push(next);
       router.refresh();
     } catch (err) {
       setError(errorMessage(err));
@@ -29,7 +34,7 @@ export default function LoginPage() {
     <AuthShell
       title="Entrar"
       subtitle="Aceda à sua conta BIGstock."
-      footer={{ text: "Ainda não tem conta?", href: "/register", label: "Criar conta" }}
+      footer={{ text: "Ainda não tem conta?", href: `/register${suffix}`, label: "Criar conta" }}
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="Email" name="email" type="email" autoComplete="email" required />
@@ -38,5 +43,13 @@ export default function LoginPage() {
         <SubmitButton pending={pending}>Entrar</SubmitButton>
       </form>
     </AuthShell>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
   );
 }

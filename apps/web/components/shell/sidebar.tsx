@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, Download, Folder, Heart, History, Home, Layers3, LifeBuoy, Search, Settings, WandSparkles, X } from "lucide-react";
+import { Code2, Download, Folder, Heart, History, Home, Layers3, LifeBuoy, Search, Settings, Users, WandSparkles, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./brand";
@@ -15,10 +15,11 @@ const NAV = [
   { href: "/historico", label: "Histórico de Geração", icon: History },
   { href: "/api", label: "Integração via API", icon: Code2 },
   { href: "/planos", label: "Planos e Créditos", icon: Layers3 },
+  { href: "/equipa", label: "Equipa", icon: Users },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
-// Só o dashboard existe nesta fase; os restantes módulos chegam com as fases seguintes.
-const AVAILABLE = new Set(["/dashboard"]);
+// Só dashboard e equipa existem nesta fase; os restantes módulos chegam com as fases seguintes.
+const AVAILABLE = new Set(["/dashboard", "/equipa"]);
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();

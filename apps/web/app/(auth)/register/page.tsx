@@ -1,12 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { AuthShell, Field, SubmitButton } from "@/components/auth-shell";
 import { api, errorMessage } from "@/lib/api";
+import { safeNext } from "@/lib/next-url";
 
-export default function RegisterPage() {
+function RegisterPageInner() {
   const router = useRouter();
+  const search = useSearchParams();
+  const next = safeNext(search.get("next"));
+  const suffix = search.get("next") ? `?next=${encodeURIComponent(next)}` : "";
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -22,7 +27,7 @@ export default function RegisterPage() {
         displayName: f.get("displayName") || undefined,
         organizationName: f.get("organizationName"),
       });
-      router.push("/dashboard");
+      router.push(next);
       router.refresh();
     } catch (err) {
       setError(errorMessage(err));
@@ -34,7 +39,7 @@ export default function RegisterPage() {
     <AuthShell
       title="Criar conta"
       subtitle="Comece com a sua organização."
-      footer={{ text: "Já tem conta?", href: "/login", label: "Entrar" }}
+      footer={{ text: "Já tem conta?", href: `/login${suffix}`, label: "Entrar" }}
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="Nome" name="displayName" autoComplete="name" />
@@ -45,5 +50,13 @@ export default function RegisterPage() {
         <SubmitButton pending={pending}>Criar conta</SubmitButton>
       </form>
     </AuthShell>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterPageInner />
+    </Suspense>
   );
 }

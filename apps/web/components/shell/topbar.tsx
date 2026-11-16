@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, Crown, LogOut, Menu, Search, UserRound } from "lucide-react";
+import { Bell, Check, ChevronDown, Crown, LogOut, Menu, Search, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api";
@@ -11,6 +11,12 @@ const ROLES: Record<string, string> = { owner: "Proprietário", admin: "Administ
 export function Topbar({ user, onMenu }: { user: ShellUser; onMenu: () => void }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  function switchOrg(id: string) {
+    document.cookie = `bs_org=${id}; path=/; max-age=31536000; samesite=lax`;
+    setOpen(false);
+    router.refresh();
+  }
 
   async function logout() {
     await api("/v1/auth/logout").catch(() => undefined);
@@ -53,6 +59,17 @@ export function Topbar({ user, onMenu }: { user: ShellUser; onMenu: () => void }
           </button>
           {open && (
             <div className="absolute top-[calc(100%+17px)] right-0 z-60 w-[250px] rounded-xl border border-[#e7e9ed] bg-white p-2.5 text-[#16191d] shadow-[0_14px_48px_rgba(0,0,0,.17)]">
+              {user.organizations.length > 1 && (
+                <div className="mb-1 border-b border-[#eef0f3] pb-1">
+                  <p className="px-2.5 py-1.5 text-[11px] font-bold text-[#7a7c87] uppercase">Organização</p>
+                  {user.organizations.map((o) => (
+                    <button key={o.id} onClick={() => switchOrg(o.id)} className="flex w-full items-center gap-2.5 rounded-[7px] p-[9px_10px] text-[13px] hover:bg-[#f4f5f7]">
+                      <span className="flex-1 truncate text-left">{o.name}</span>
+                      {o.id === user.orgId && <Check size={16} className="text-brand" />}
+                    </button>
+                  ))}
+                </div>
+              )}
               <button disabled className="flex w-full cursor-not-allowed items-center gap-2.5 rounded-[7px] p-[11px_10px] text-[13px] opacity-50">
                 <Crown size={17} /> Gerir plano
               </button>

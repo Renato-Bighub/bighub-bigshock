@@ -8,6 +8,8 @@ export interface ShellUser {
   name: string;
   orgName: string;
   role: string;
+  orgId: string;
+  organizations: { id: string; name: string; role: string }[];
 }
 
 export function AppShell({ user, children }: { user: ShellUser; children: React.ReactNode }) {
