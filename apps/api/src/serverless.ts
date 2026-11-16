@@ -1,4 +1,7 @@
 import "reflect-metadata";
+import { initObservability } from "./observability.js";
+
+initObservability();
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { IncomingMessage, ServerResponse } from "node:http";

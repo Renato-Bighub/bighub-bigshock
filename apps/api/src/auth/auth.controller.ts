@@ -39,7 +39,7 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(ThrottlerGuard)
   async login(@Body() body: unknown, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const { userId, token } = await this.auth.login(parse(loginBody, body), String(req.id));
+    const { userId, token } = await this.auth.login(parse(loginBody, body), String(req.id), req.ip ?? null);
     setSession(res, token);
     return { user_id: userId, request_id: String(req.id) };
   }

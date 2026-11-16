@@ -1,8 +1,10 @@
-import { ConflictException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConflictException, HttpException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import {
   and,
   auditEvents,
+  authAttempts,
+  count,
   eq,
   gt,
   isNull,
@@ -20,6 +22,11 @@ import { hashPassword, verifyPassword } from "./password.js";
 
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
+
+/** Falhas por e-mail/IP na janela antes de travar. Valores generosos para o IP (NAT, proxies). */
+const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+const MAX_FAILS_PER_EMAIL = 10;
+const MAX_FAILS_PER_IP = 50;
 
 const isUniqueViolation = (e: unknown) =>
   (e as { cause?: { code?: string }; code?: string })?.cause?.code === "23505" ||
@@ -56,9 +63,24 @@ export class AuthService {
     return { userId, token: await this.createSession(userId) };
   }
 
-  async login(body: LoginBody, requestId: string) {
+  /** Trava força bruta (por e-mail e por IP) com contadores em BD: vale entre instâncias serverless. */
+  private async assertNotLocked(emailHash: string, ip: string | null) {
+    const since = new Date(Date.now() - ATTEMPT_WINDOW_MS);
+    const [byEmail] = await this.db.select({ n: count() }).from(authAttempts).where(and(eq(authAttempts.emailHash, emailHash), eq(authAttempts.success, false), gt(authAttempts.createdAt, since)));
+    const [byIp] = ip
+      ? await this.db.select({ n: count() }).from(authAttempts).where(and(eq(authAttempts.ip, ip), eq(authAttempts.success, false), gt(authAttempts.createdAt, since)))
+      : [{ n: 0 }];
+    if ((byEmail?.n ?? 0) >= MAX_FAILS_PER_EMAIL || (byIp?.n ?? 0) >= MAX_FAILS_PER_IP) {
+      throw new HttpException({ code: "too_many_attempts", message: "Too many failed sign-in attempts. Try again later.", retryAfter: ATTEMPT_WINDOW_MS / 1000 }, 429);
+    }
+  }
+
+  async login(body: LoginBody, requestId: string, ip: string | null = null) {
+    const emailHash = sha256(body.email);
+    await this.assertNotLocked(emailHash, ip);
     const [user] = await this.db.select().from(users).where(eq(users.email, body.email));
     const ok = await verifyPassword(user?.passwordHash ?? null, body.password);
+    await this.db.insert(authAttempts).values({ emailHash, ip, success: Boolean(user && ok) });
     if (!user || !ok) throw new UnauthorizedException({ code: "invalid_credentials", message: "Invalid email or password" });
     const memberships = await this.memberships(user.id);
     const first = memberships[0];

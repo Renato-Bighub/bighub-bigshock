@@ -419,3 +419,20 @@ export const apiUsageMonthly = pgTable(
   },
   (t) => [primaryKey({ columns: [t.organizationId, t.month] })],
 );
+
+// ---------------------------------------------------------------------------
+// Segurança (Fase 6)
+// ---------------------------------------------------------------------------
+
+/** Tentativas de autenticação, para travar força bruta entre instâncias serverless. Guarda só hashes/IP. */
+export const authAttempts = pgTable(
+  "auth_attempts",
+  {
+    id: id(),
+    emailHash: text("email_hash").notNull(),
+    ip: text("ip"),
+    success: boolean("success").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("auth_attempts_email_idx").on(t.emailHash, t.createdAt), index("auth_attempts_ip_idx").on(t.ip, t.createdAt)],
+);
