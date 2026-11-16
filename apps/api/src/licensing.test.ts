@@ -3,7 +3,7 @@ process.env.AUTH_RATE_LIMIT = "1000";
 process.env.STORAGE_DIR = `${process.env.TMPDIR ?? "/tmp"}/bigstock-lic-${Date.now()}`;
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { assets, createDb, downloadEvents, eq, inArray, licenseGrants, rightsRecords, runMigrations, users } from "@bigstock/database";
+import { assets, createDb, downloadEvents, eq, inArray, licenseGrants, rightsRecords, runMigrations, subscriptions, users } from "@bigstock/database";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AppModule } from "./app.module.js";
@@ -140,6 +140,40 @@ describe.skipIf(!url)("licenciamento e downloads", () => {
     const issued = await http().post(`/v1/organizations/${a.orgId}/licenses/${grantId}/download`).set("Cookie", a.cookie);
     expect(issued.status).toBe(200);
     expect((await http().get(issued.body.data.url)).status).toBe(200);
+  });
+
+  it("quota do plano: gratuito = 3 licenças; assinatura ativa amplia; expirada volta ao gratuito", async () => {
+    const q = await user("lic-q");
+    const ids: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      const c = await http().post("/v1/admin/assets").set("Cookie", admin.cookie).send({ title: `Quota ${i} zorbo${stamp}`, category: "natureza", width: 1, height: 1 });
+      const id = c.body.data.id as string;
+      created.push(id);
+      ids.push(id);
+      await http().put(`/v1/admin/assets/${id}/preview`).set("Cookie", admin.cookie).set("Content-Type", "image/png").send(PNG);
+      await http().put(`/v1/admin/assets/${id}/original`).set("Cookie", admin.cookie).set("Content-Type", "image/png").send(PNG);
+      await http().put(`/v1/admin/assets/${id}/rights`).set("Cookie", admin.cookie).send({ rightsHolder: "BIGhub", licenseBasis: "teste", verified: true });
+      await http().post(`/v1/admin/assets/${id}/publish`).set("Cookie", admin.cookie).expect(204);
+    }
+    for (let i = 0; i < 3; i++) expect((await license(q, ids[i]!, `key-quota-${i}-aa`)).status).toBe(201);
+    const over = await license(q, ids[3]!, "key-quota-3-aa");
+    expect(over.status).toBe(402);
+    expect(over.body.error.code).toBe("download_quota_exceeded");
+    // reaproveitar uma licença existente não consome quota
+    expect((await license(q, ids[0]!, "key-quota-0-bb")).status).toBe(200);
+
+    const now = new Date();
+    const sub = { organizationId: q.orgId, planCode: "pro", status: "active" as const, interval: "month" as const, currentPeriodStart: new Date(now.getTime() - 86_400_000), currentPeriodEnd: new Date(now.getTime() + 29 * 86_400_000) };
+    await db.insert(subscriptions).values(sub);
+    expect((await license(q, ids[3]!, "key-quota-3-cc")).status).toBe(201);
+
+    // assinatura expirada/cancelada: volta ao plano gratuito (já usou 4 ≥ 3)
+    await db.update(subscriptions).set({ status: "cancelled" }).where(eq(subscriptions.organizationId, q.orgId));
+    expect((await license(q, ids[4]!, "key-quota-4-dd")).status).toBe(402);
+    // dados já adquiridos continuam acessíveis
+    const grantId = (await http().get(`/v1/organizations/${q.orgId}/licenses`).set("Cookie", q.cookie)).body.data[0].id;
+    expect((await http().post(`/v1/organizations/${q.orgId}/licenses/${grantId}/download`).set("Cookie", q.cookie)).status).toBe(200);
+    await db.delete(subscriptions).where(eq(subscriptions.organizationId, q.orgId));
   });
 
   it("concessões e downloads são append-only", async () => {

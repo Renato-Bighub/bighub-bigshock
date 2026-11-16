@@ -223,3 +223,100 @@ export const downloadEvents = pgTable(
   },
   (t) => [index("download_events_org_idx").on(t.organizationId, t.createdAt)],
 );
+
+// ---------------------------------------------------------------------------
+// Monetização (Fase 3)
+// ---------------------------------------------------------------------------
+
+/** Catálogo de planos. Valores PLACEHOLDER até decisão comercial; preços em cêntimos de EUR. */
+export const plans = pgTable("plans", {
+  code: text("code").primaryKey(),
+  name: text("name").notNull(),
+  monthlyPriceCents: integer("monthly_price_cents").notNull(),
+  annualPriceCents: integer("annual_price_cents").notNull(),
+  /** Créditos de IA incluídos por período. Nunca ilimitado. */
+  includedCredits: integer("included_credits").notNull(),
+  /** Licenças (downloads de ativos distintos) por período. */
+  downloadQuota: integer("download_quota").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const creditPacks = pgTable("credit_packs", {
+  code: text("code").primaryKey(),
+  name: text("name").notNull(),
+  credits: integer("credits").notNull(),
+  priceCents: integer("price_cents").notNull(),
+  /** Validade dos créditos comprados, em meses. */
+  validityMonths: integer("validity_months").notNull().default(12),
+});
+
+/** Cliente de faturação (Stripe) por organização. */
+export const billingAccounts = pgTable("billing_accounts", {
+  organizationId: uuid("organization_id").primaryKey().references(() => organizations.id),
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  createdAt: createdAt(),
+});
+
+/** Estado atual da assinatura (mutável; o histórico financeiro vive em payments/invoices). */
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    planCode: text("plan_code").notNull().references(() => plans.code),
+    status: text("status", { enum: ["active", "past_due", "cancelled", "incomplete"] }).notNull(),
+    interval: text("interval", { enum: ["month", "year"] }).notNull().default("month"),
+    currentPeriodStart: timestamp("current_period_start", { withTimezone: true }).notNull(),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }).notNull(),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    /** Downgrade agendado: só entra em vigor no próximo ciclo. */
+    pendingPlanCode: text("pending_plan_code").references(() => plans.code),
+    stripeSubscriptionId: text("stripe_subscription_id").unique(),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("subscriptions_org_uq").on(t.organizationId)],
+);
+
+/** Eventos de pagamento. Append-only: estornos/falhas entram como novas linhas. */
+export const payments = pgTable(
+  "payments",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    kind: text("kind", { enum: ["subscription", "credit_pack"] }).notNull(),
+    status: text("status", { enum: ["succeeded", "failed", "refunded"] }).notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull().default("eur"),
+    /** Referência única do evento no fornecedor (idempotência). */
+    providerRef: text("provider_ref").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("payments_provider_ref_uq").on(t.providerRef), index("payments_org_idx").on(t.organizationId, t.createdAt)],
+);
+
+/** Faturas emitidas pelo fornecedor fiscal (Stripe Invoicing/Tax). Append-only. */
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    stripeInvoiceId: text("stripe_invoice_id").notNull().unique(),
+    number: text("number"),
+    amountCents: integer("amount_cents").notNull(),
+    taxCents: integer("tax_cents").notNull().default(0),
+    currency: text("currency").notNull().default("eur"),
+    hostedUrl: text("hosted_url"),
+    pdfUrl: text("pdf_url"),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("invoices_org_idx").on(t.organizationId, t.issuedAt)],
+);
+
+/** Idempotência de webhooks: cada evento do fornecedor é processado uma só vez. */
+export const providerEvents = pgTable("provider_events", {
+  id: text("id").primaryKey(),
+  type: text("type").notNull(),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+});

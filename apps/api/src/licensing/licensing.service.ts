@@ -13,6 +13,7 @@ import {
   type Database,
 } from "@bigstock/database";
 import type { LicenseDto } from "@bigstock/contracts";
+import { EntitlementsService } from "../billing/entitlements.service.js";
 import { DB } from "../database.module.js";
 import { decodeCursor, encodeCursor } from "../catalog/cursor.js";
 import { StorageService } from "../catalog/storage.service.js";
@@ -20,11 +21,7 @@ import { signDownload, verifyDownload } from "./download-token.js";
 
 const isUnique = (e: unknown) => (e as { cause?: { code?: string } })?.cause?.code === "23505";
 
-/**
- * Política de licenciamento. PLACEHOLDER até à Fase 3 (planos e quotas): hoje todo
- * membro autorizado pode licenciar um ativo publicado. O ponto de extensão existe para
- * que preço, elegibilidade e quotas sejam sempre decididos aqui, no backend (CLAUDE.md §5).
- */
+/** Elegibilidade do ativo; a quota do plano é verificada por EntitlementsService (sempre no backend, CLAUDE.md §5). */
 function assertEligible(_org: string, asset: { status: string }) {
   if (asset.status !== "published") throw new NotFoundException({ code: "not_found", message: "Asset not found" });
 }
@@ -34,6 +31,7 @@ export class LicensingService {
   constructor(
     @Inject(DB) private readonly db: Database,
     private readonly storage: StorageService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   async currentTerms() {
@@ -66,6 +64,9 @@ export class LicensingService {
           const [asset] = await tx.select().from(assets).where(eq(assets.id, assetId));
           if (!asset) throw new NotFoundException({ code: "not_found", message: "Asset not found" });
           assertEligible(orgId, asset);
+          // Serializa por organização para a quota não ser ultrapassada por pedidos concorrentes.
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${orgId}, 0))`);
+          await this.entitlements.assertCanLicense(tx, orgId);
           const terms = await this.currentTerms();
           const [grant] = await tx
             .insert(licenseGrants)

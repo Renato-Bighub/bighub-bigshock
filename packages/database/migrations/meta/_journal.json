@@ -92,6 +92,20 @@
       "when": 1794791837876,
       "tag": "0012_licensing_rls_terms",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794793111365,
+      "tag": "0013_monetization",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794793111819,
+      "tag": "0014_monetization_rls_seed",
+      "breakpoints": true
     }
   ]
 }
