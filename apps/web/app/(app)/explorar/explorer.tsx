@@ -1,19 +1,21 @@
 "use client";
 
 import type { AssetDto, AssetListResponse } from "@bigstock/contracts";
-import { Search, X } from "lucide-react";
+import { FolderPlus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CollectionPicker } from "@/components/library/collection-picker";
+import { FavoriteButton } from "@/components/library/favorite-button";
 import { api, apiGet, errorMessage } from "@/lib/api";
 
 export interface Category { slug: string; namePt: string; nameEn: string }
 
 export interface Terms { version: string; title: string; summary: string }
 
-export function Explorer({ q, category, categories, initial, nextCursor, orgId, canLicense, terms }: {
+export function Explorer({ q, category, categories, initial, nextCursor, orgId, canLicense, terms, favoriteIds }: {
   q: string; category: string; categories: Category[]; initial: AssetDto[]; nextCursor: string | null;
-  orgId: string | null; canLicense: boolean; terms: Terms | null;
+  orgId: string | null; canLicense: boolean; terms: Terms | null; favoriteIds: string[];
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
@@ -22,6 +24,9 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<AssetDto | null>(null);
   const [licensing, setLicensing] = useState(false);
+  const [favs, setFavs] = useState(() => new Set(favoriteIds));
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const setFav = (id: string, on: boolean) => setFavs((s) => { const n = new Set(s); if (on) n.add(id); else n.delete(id); return n; });
   const [licenseError, setLicenseError] = useState<string | null>(null);
   // Uma chave por tentativa de licenciar o mesmo ativo: reenvios não duplicam a concessão.
   const [idemKeys] = useState(() => new Map<string, string>());
@@ -99,12 +104,15 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
       ) : (
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
           {items.map((a) => (
-            <li key={a.id}>
-              <button onClick={() => { setSelected(a); setLicenseError(null); }} className="group relative block aspect-[3/2] w-full overflow-hidden rounded-[10px] bg-gradient-to-br from-[#2b3440] to-[#11161d]">
+            <li key={a.id} className="relative">
+              <button onClick={() => { setSelected(a); setLicenseError(null); setPickerOpen(false); }} className="group relative block aspect-[3/2] w-full overflow-hidden rounded-[10px] bg-gradient-to-br from-[#2b3440] to-[#11161d]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/api${a.preview_url}`} alt={a.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2.5 pt-8 text-left text-xs font-bold text-white opacity-0 transition group-hover:opacity-100">{a.title}</span>
               </button>
+              {orgId && canLicense && (
+                <FavoriteButton orgId={orgId} assetId={a.id} favorited={favs.has(a.id)} onChange={(on) => setFav(a.id, on)} onError={setError} className="absolute top-2 right-2 bg-white/90 p-2 text-nav hover:bg-white" />
+              )}
             </li>
           ))}
         </ul>
@@ -139,6 +147,13 @@ export function Explorer({ q, category, categories, initial, nextCursor, orgId, 
                   <p className="mt-2 leading-relaxed">{terms.summary}</p>
                 </details>
               )}
+              {orgId && canLicense && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <FavoriteButton orgId={orgId} assetId={selected.id} favorited={favs.has(selected.id)} onChange={(on) => setFav(selected.id, on)} onError={setLicenseError} label className="border border-nav/20 bg-white px-3.5 py-2 hover:border-brand" />
+                  <button type="button" onClick={() => setPickerOpen((o) => !o)} aria-expanded={pickerOpen} className="flex items-center gap-1.5 rounded-full border border-nav/20 bg-white px-3.5 py-2 text-sm font-bold hover:border-brand"><FolderPlus size={16} /> Guardar em coleção</button>
+                </div>
+              )}
+              {orgId && canLicense && pickerOpen && <CollectionPicker orgId={orgId} assetId={selected.id} onClose={() => setPickerOpen(false)} />}
               {licenseError && <p role="alert" className="mt-3 rounded-lg bg-brand/10 px-3 py-2 text-sm text-brand">{licenseError}</p>}
               <button
                 disabled={!canLicense || licensing}

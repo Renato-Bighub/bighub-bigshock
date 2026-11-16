@@ -67,3 +67,4 @@ export const meResponse = z.object({
 export type MeResponse = z.infer<typeof meResponse>;
 export * from "./permissions";
 export * from "./catalog";
+export * from "./library";

@@ -457,3 +457,54 @@ export const emailTokens = pgTable(
   },
   (t) => [index("email_tokens_user_kind_idx").on(t.userId, t.kind, t.createdAt)],
 );
+
+// ---------------------------------------------------------------------------
+// Biblioteca: favoritos e coleções
+// ---------------------------------------------------------------------------
+
+/** Favorito de um utilizador, dentro de uma organização. Só ativos publicados são mostrados. */
+export const favorites = pgTable(
+  "favorites",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    assetId: uuid("asset_id").notNull().references(() => assets.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("favorites_org_user_asset_uq").on(t.organizationId, t.userId, t.assetId),
+    index("favorites_org_user_created_idx").on(t.organizationId, t.userId, t.createdAt, t.id),
+  ],
+);
+
+/** Coleção partilhada por toda a organização. */
+export const collections = pgTable(
+  "collections",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdBy: uuid("created_by").notNull().references(() => users.id),
+    createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("collections_org_updated_idx").on(t.organizationId, t.updatedAt, t.id)],
+);
+
+export const collectionItems = pgTable(
+  "collection_items",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    collectionId: uuid("collection_id").notNull().references(() => collections.id, { onDelete: "cascade" }),
+    assetId: uuid("asset_id").notNull().references(() => assets.id),
+    addedBy: uuid("added_by").notNull().references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("collection_items_collection_asset_uq").on(t.collectionId, t.assetId),
+    index("collection_items_collection_created_idx").on(t.collectionId, t.createdAt, t.id),
+  ],
+);

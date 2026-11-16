@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assignableRoles, can } from "./permissions";
+import { assignableRoles, can, scopeForPermission } from "./permissions";
 
 describe("permissões por papel", () => {
   it("owner pode tudo", () => {
@@ -20,5 +20,12 @@ describe("permissões por papel", () => {
     expect(assignableRoles("owner")).not.toContain("owner");
     expect(assignableRoles("admin")).toEqual(["member", "billing"]);
     expect(assignableRoles("member")).toEqual([]);
+  });
+  it("biblioteca: billing só lê; member escreve; nunca por chave de API", () => {
+    expect(can("member", "library:write")).toBe(true);
+    expect(can("billing", "library:read")).toBe(true);
+    expect(can("billing", "library:write")).toBe(false);
+    expect(scopeForPermission("library:read")).toBeUndefined();
+    expect(scopeForPermission("library:write")).toBeUndefined();
   });
 });

@@ -17,14 +17,16 @@ export const permissions = [
   "ai:read",
   "api_keys:manage",
   "usage:read",
+  "library:read",
+  "library:write",
 ] as const;
 export type Permission = (typeof permissions)[number];
 
 const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   owner: permissions,
-  admin: ["org:update", "members:read", "members:invite", "members:remove", "credits:read", "licenses:read", "licenses:create", "ai:generate", "ai:read", "api_keys:manage", "usage:read"],
-  billing: ["members:read", "billing:manage", "credits:read", "licenses:read", "usage:read"],
-  member: ["members:read", "credits:read", "licenses:read", "licenses:create", "ai:generate", "ai:read"],
+  admin: ["org:update", "members:read", "members:invite", "members:remove", "credits:read", "licenses:read", "licenses:create", "ai:generate", "ai:read", "api_keys:manage", "usage:read", "library:read", "library:write"],
+  billing: ["members:read", "billing:manage", "credits:read", "licenses:read", "usage:read", "library:read"],
+  member: ["members:read", "credits:read", "licenses:read", "licenses:create", "ai:generate", "ai:read", "library:read", "library:write"],
 };
 
 export const can = (role: Role, permission: Permission): boolean => ROLE_PERMISSIONS[role].includes(permission);

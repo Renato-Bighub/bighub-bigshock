@@ -32,6 +32,7 @@ const MESSAGES: Record<string, string> = {
   too_soon: "Aguarde um minuto antes de pedir outro e-mail.",
   email_not_verified: "Confirme primeiro o seu e-mail (veja a faixa no topo da página) para aceitar convites.",
   no_billing_account: "Ainda não existe conta de faturação.",
+  limit_reached: "Atingiu o limite máximo permitido.",
   invalid_invitation: "Convite inválido, expirado ou destinado a outro email. Inicie sessão com o email convidado.",
 };
 
@@ -43,7 +44,7 @@ export const errorMessage = (e: unknown) =>
 export async function api<T = unknown>(
   path: string,
   body?: unknown,
-  method: "POST" | "PATCH" | "DELETE" = "POST",
+  method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
   extraHeaders: Record<string, string> = {},
 ): Promise<T> {
   const res = await fetch(`/api${path}`, {

@@ -19,7 +19,7 @@ function Card({ icon, title, children }: { icon: React.ReactNode; title: string;
 const ACTIONS = [
   { icon: Sparkles, label: "Gerar nova imagem com IA", href: "/gerar" },
   { icon: Code2, label: "Integrar via API", href: "/integracao" },
-  { icon: Plus, label: "Criar coleção", href: null },
+  { icon: Plus, label: "Criar coleção", href: "/colecoes" },
   { icon: History, label: "Ver histórico de geração", href: "/historico" },
 ];
 

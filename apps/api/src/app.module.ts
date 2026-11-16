@@ -13,6 +13,7 @@ import { MailModule } from "./mail/mail.module.js";
 import { AiModule } from "./ai/ai.module.js";
 import { BillingModule } from "./billing/billing.module.js";
 import { LicensingModule } from "./licensing/licensing.module.js";
+import { LibraryModule } from "./library/library.module.js";
 import { CatalogModule } from "./catalog/catalog.module.js";
 import { OrganizationsModule } from "./organizations/organizations.module.js";
 import { DatabaseModule } from "./database.module.js";
@@ -24,6 +25,7 @@ import { DatabaseModule } from "./database.module.js";
     OrganizationsModule,
     CatalogModule,
     LicensingModule,
+    LibraryModule,
     BillingModule,
     AiModule,
     MailModule,

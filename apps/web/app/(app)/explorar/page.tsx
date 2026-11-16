@@ -8,10 +8,11 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   if (q) params.set("q", q);
   if (category) params.set("category", category);
   const { org } = await getActiveOrg();
-  const [list, cats, terms] = await Promise.all([
+  const [list, cats, terms, favs] = await Promise.all([
     get<AssetListResponse>(`/v1/assets?${params}`),
     get<{ data: Category[] }>("/v1/categories"),
     get<{ data: { version: string; title: string; summary: string } }>("/v1/license-terms/current"),
+    org ? get<{ data: string[] }>(`/v1/organizations/${org.id}/favorites/ids`) : Promise.resolve(null),
   ]);
   return (
     <Explorer
@@ -24,6 +25,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
       orgId={org?.id ?? null}
       canLicense={org ? ["owner", "admin", "member"].includes(org.role) : false}
       terms={terms?.data ?? null}
+      favoriteIds={favs?.data ?? []}
     />
   );
 }

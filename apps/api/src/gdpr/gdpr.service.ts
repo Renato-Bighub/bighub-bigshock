@@ -10,6 +10,9 @@ import {
   invitations,
   isNull,
   licenseGrants,
+  collections,
+  collectionItems,
+  favorites,
   organizationMembers,
   organizations,
   sessions,
@@ -61,6 +64,8 @@ export class GdprService {
           .from(licenseGrants)
           .innerJoin(assets, eq(assets.id, licenseGrants.assetId))
           .where(eq(licenseGrants.userId, userId)),
+        favorites: await tx.select({ asset_title: assets.title, created_at: favorites.createdAt }).from(favorites).innerJoin(assets, eq(assets.id, favorites.assetId)).where(eq(favorites.userId, userId)),
+        collections_created: await tx.select({ name: collections.name, description: collections.description, created_at: collections.createdAt }).from(collections).where(eq(collections.createdBy, userId)),
         downloads: await tx.select({ created_at: downloadEvents.createdAt }).from(downloadEvents).where(eq(downloadEvents.userId, userId)),
         ai_jobs: await tx.select({ kind: aiJobs.kind, prompt: aiJobs.prompt, size: aiJobs.size, quality: aiJobs.quality, status: aiJobs.status, cost_credits: aiJobs.costCredits, provider: aiJobs.provider, model: aiJobs.model, created_at: aiJobs.createdAt }).from(aiJobs).where(eq(aiJobs.userId, userId)),
         audit_events: await tx.select({ action: auditEvents.action, resource_type: auditEvents.resourceType, created_at: auditEvents.createdAt }).from(auditEvents).where(eq(auditEvents.actorUserId, userId)),
@@ -118,6 +123,9 @@ export class GdprService {
         const jobs = await tx.select({ key: aiJobs.outputKey }).from(aiJobs).where(eq(aiJobs.organizationId, org.id));
         for (const j of jobs) if (j.key) outputKeys.push(j.key);
         await tx.update(aiJobs).set({ prompt: ERASED_PROMPT, outputKey: null }).where(eq(aiJobs.organizationId, org.id));
+        await tx.delete(favorites).where(eq(favorites.organizationId, org.id));
+        await tx.delete(collectionItems).where(eq(collectionItems.organizationId, org.id));
+        await tx.delete(collections).where(eq(collections.organizationId, org.id));
         await tx.update(apiKeys).set({ revokedAt: new Date() }).where(and(eq(apiKeys.organizationId, org.id), isNull(apiKeys.revokedAt)));
         await tx.update(invitations).set({ revokedAt: new Date() }).where(and(eq(invitations.organizationId, org.id), isNull(invitations.acceptedAt), isNull(invitations.revokedAt)));
         await tx.update(subscriptions).set({ status: "cancelled", cancelAtPeriodEnd: false, pendingPlanCode: null, updatedAt: new Date() }).where(eq(subscriptions.organizationId, org.id));
@@ -128,6 +136,7 @@ export class GdprService {
     }
     for (const orgId of toLeave) {
       await withTenant(this.db, orgId, async (tx) => {
+        await tx.delete(favorites).where(and(eq(favorites.organizationId, orgId), eq(favorites.userId, userId)));
         await tx.update(apiKeys).set({ revokedAt: new Date() }).where(and(eq(apiKeys.organizationId, orgId), eq(apiKeys.createdBy, userId), isNull(apiKeys.revokedAt)));
         await tx.update(invitations).set({ revokedAt: new Date() }).where(and(eq(invitations.organizationId, orgId), eq(invitations.invitedBy, userId), isNull(invitations.acceptedAt), isNull(invitations.revokedAt)));
         await tx.delete(organizationMembers).where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, userId)));
