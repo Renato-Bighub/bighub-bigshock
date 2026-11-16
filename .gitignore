@@ -15,4 +15,3 @@ apps/web/public/images/*
 
 dist-bundle
 .vercel
-.env*
