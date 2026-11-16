@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, Param, Post, Query
 import type { Response } from "express";
 import { z, type ZodType } from "zod";
 import { aiJobBody, aiRequestBody } from "@bigstock/contracts";
+import { ApiKeyOrgRoute } from "../api-access/api-key.decorators.js";
 import { SessionGuard } from "../auth/auth.guard.js";
 import { OrgGuard, type OrgRequest, RequirePermission } from "../organizations/org.guard.js";
 import { AiService, toJobDto } from "./ai.service.js";
@@ -14,6 +15,7 @@ function parse<T>(schema: ZodType<T>, value: unknown): T {
 const listQuery = z.object({ cursor: z.string().max(500).optional(), limit: z.coerce.number().int().min(1).max(100).default(24) });
 
 @Controller("v1/organizations/:orgId/ai")
+@ApiKeyOrgRoute()
 @UseGuards(SessionGuard, OrgGuard)
 export class AiController {
   constructor(private readonly ai: AiService) {}

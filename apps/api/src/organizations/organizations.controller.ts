@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Pa
 import type { Request } from "express";
 import { z, type ZodType } from "zod";
 import { acceptInviteBody, changeRoleBody, inviteBody } from "@bigstock/contracts";
+import { ApiKeyOrgRoute } from "../api-access/api-key.decorators.js";
 import { type AuthedRequest, SessionGuard } from "../auth/auth.guard.js";
 import { OrgGuard, type OrgRequest, RequirePermission } from "./org.guard.js";
 import { OrganizationsService } from "./organizations.service.js";
@@ -26,6 +27,7 @@ export class OrganizationsController {
   }
 
   @Get("organizations/:orgId/credits")
+  @ApiKeyOrgRoute()
   @UseGuards(OrgGuard)
   @RequirePermission("credits:read")
   async credits(@Req() req: OrgRequest) {

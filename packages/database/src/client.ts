@@ -49,3 +49,12 @@ export async function withUser<T>(
 export async function enterTenant(tx: Tx, organizationId: string): Promise<void> {
   await tx.execute(sql`SELECT set_config('app.organization_id', ${organizationId}, true)`);
 }
+
+/** Contexto de autenticação de chave de API: só permite ler a chave com este prefixo (ainda sem organização conhecida). */
+export async function withApiKeyPrefix<T>(db: Database, prefix: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SET LOCAL ROLE bigstock_app`);
+    await tx.execute(sql`SELECT set_config('app.api_key_prefix', ${prefix}, true)`);
+    return fn(tx);
+  });
+}

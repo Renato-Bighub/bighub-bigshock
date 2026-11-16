@@ -6,6 +6,8 @@ export interface Entitlement {
   planName: string;
   downloadQuota: number;
   includedCredits: number;
+  apiRequestsPerMinute: number;
+  apiMonthlyRequests: number;
   windowStart: Date;
   windowEnd: Date;
 }
@@ -24,11 +26,11 @@ export class EntitlementsService {
     const [plan] = await tx.select().from(plans).where(eq(plans.code, code));
     if (!plan) throw new Error(`plan ${code} not found`);
     if (paying) {
-      return { planCode: code, planName: plan.name, downloadQuota: plan.downloadQuota, includedCredits: plan.includedCredits, windowStart: sub.currentPeriodStart, windowEnd: sub.currentPeriodEnd };
+      return { planCode: code, planName: plan.name, downloadQuota: plan.downloadQuota, includedCredits: plan.includedCredits, apiRequestsPerMinute: plan.apiRequestsPerMinute, apiMonthlyRequests: plan.apiMonthlyRequests, windowStart: sub.currentPeriodStart, windowEnd: sub.currentPeriodEnd };
     }
     const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-    return { planCode: code, planName: plan.name, downloadQuota: plan.downloadQuota, includedCredits: plan.includedCredits, windowStart: start, windowEnd: end };
+    return { planCode: code, planName: plan.name, downloadQuota: plan.downloadQuota, includedCredits: plan.includedCredits, apiRequestsPerMinute: plan.apiRequestsPerMinute, apiMonthlyRequests: plan.apiMonthlyRequests, windowStart: start, windowEnd: end };
   }
 
   async downloadsUsed(tx: Tx, orgId: string, ent: Entitlement): Promise<number> {

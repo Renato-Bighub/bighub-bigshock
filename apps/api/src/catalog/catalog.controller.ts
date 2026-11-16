@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Get, Header, HttpCode, Param, Po
 import type { Response } from "express";
 import { z, type ZodType } from "zod";
 import { assetListQuery, createAssetBody, rightsBody, type AssetListResponse } from "@bigstock/contracts";
+import { ApiKeyScope } from "../api-access/api-key.decorators.js";
 import { SessionGuard } from "../auth/auth.guard.js";
 import { CatalogService } from "./catalog.service.js";
 import { PlatformGuard, type PlatformRequest } from "./platform.guard.js";
@@ -19,22 +20,26 @@ export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}
 
   @Get("categories")
+  @ApiKeyScope("assets:read")
   async categories(@Req() req: PlatformRequest) {
     return { data: await this.catalog.listCategories(), request_id: String(req.id) };
   }
 
   @Get("assets")
+  @ApiKeyScope("assets:read")
   async list(@Query() query: Record<string, string>, @Req() req: PlatformRequest): Promise<AssetListResponse> {
     const r = await this.catalog.search(parse(assetListQuery, query));
     return { data: r.data, pagination: { next_cursor: r.next_cursor, has_more: r.has_more }, request_id: String(req.id) };
   }
 
   @Get("assets/:id")
+  @ApiKeyScope("assets:read")
   async detail(@Param("id") id: string, @Req() req: PlatformRequest) {
     return { data: this.catalog.detail(await this.catalog.getPublished(uuid(id))), request_id: String(req.id) };
   }
 
   @Get("assets/:id/preview")
+  @ApiKeyScope("assets:read")
   @Header("Cache-Control", "private, max-age=3600")
   async preview(@Param("id") id: string, @Res() res: Response) {
     const { body, contentType } = await this.catalog.preview(uuid(id));

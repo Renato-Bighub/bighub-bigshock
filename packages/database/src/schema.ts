@@ -10,6 +10,7 @@ import {
   jsonb,
   type AnyPgColumn,
   boolean,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 const id = () => uuid("id").primaryKey().defaultRandom();
@@ -238,6 +239,9 @@ export const plans = pgTable("plans", {
   includedCredits: integer("included_credits").notNull(),
   /** Licenças (downloads de ativos distintos) por período. */
   downloadQuota: integer("download_quota").notNull(),
+  /** API pública: pedidos por minuto por chave e por mês por organização. 0 = sem acesso à API. */
+  apiRequestsPerMinute: integer("api_requests_per_minute").notNull().default(0),
+  apiMonthlyRequests: integer("api_monthly_requests").notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
@@ -364,4 +368,54 @@ export const aiJobs = pgTable(
     index("ai_jobs_org_created_idx").on(t.organizationId, t.createdAt, t.id),
     index("ai_jobs_org_status_idx").on(t.organizationId, t.status),
   ],
+);
+
+// ---------------------------------------------------------------------------
+// API pública (Fase 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Chaves de API. O segredo só existe em claro no momento da criação: guarda-se o prefixo
+ * (identificação) e o hash SHA-256 do segredo. Nunca expostas depois (CLAUDE.md §5).
+ */
+export const apiKeys = pgTable(
+  "api_keys",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    name: text("name").notNull(),
+    keyPrefix: text("key_prefix").notNull().unique(),
+    keyHash: text("key_hash").notNull(),
+    scopes: text("scopes").array().notNull(),
+    /** A chave age em nome deste utilizador nos registos de auditoria e concessões. */
+    createdBy: uuid("created_by").notNull().references(() => users.id),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("api_keys_org_idx").on(t.organizationId)],
+);
+
+/** Contador por chave e minuto (limite de taxa que funciona entre instâncias serverless). */
+export const apiUsageMinutes = pgTable(
+  "api_usage_minutes",
+  {
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    keyId: uuid("key_id").notNull().references(() => apiKeys.id),
+    minuteStart: timestamp("minute_start", { withTimezone: true }).notNull(),
+    requests: integer("requests").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.keyId, t.minuteStart] })],
+);
+
+/** Consumo mensal da organização (medição para quota e faturação por consumo futura). */
+export const apiUsageMonthly = pgTable(
+  "api_usage_monthly",
+  {
+    organizationId: uuid("organization_id").notNull().references(() => organizations.id),
+    month: timestamp("month", { withTimezone: true }).notNull(),
+    requests: integer("requests").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.organizationId, t.month] })],
 );

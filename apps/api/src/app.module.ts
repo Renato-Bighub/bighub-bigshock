@@ -2,10 +2,12 @@ import { Module } from "@nestjs/common";
 import { LoggerModule } from "nestjs-pino";
 import { randomUUID } from "node:crypto";
 import { HealthController } from "./health.controller.js";
+import { OpenApiController } from "./openapi.controller.js";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { APP_FILTER } from "@nestjs/core";
 import { AllExceptionsFilter } from "./common/http-exception.filter.js";
 import { AuthModule } from "./auth/auth.module.js";
+import { ApiAccessModule } from "./api-access/api-access.module.js";
 import { AiModule } from "./ai/ai.module.js";
 import { BillingModule } from "./billing/billing.module.js";
 import { LicensingModule } from "./licensing/licensing.module.js";
@@ -22,7 +24,8 @@ import { DatabaseModule } from "./database.module.js";
     LicensingModule,
     BillingModule,
     AiModule,
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: Number(process.env.AUTH_RATE_LIMIT ?? 10) }]),
+    ApiAccessModule,
+    ThrottlerModule.forRootAsync({ useFactory: () => [{ ttl: 60_000, limit: Number(process.env.AUTH_RATE_LIMIT ?? 10) }] }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? "info",
@@ -37,7 +40,7 @@ import { DatabaseModule } from "./database.module.js";
       },
     }),
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, OpenApiController],
   providers: [{ provide: APP_FILTER, useClass: AllExceptionsFilter }],
 })
 export class AppModule {}

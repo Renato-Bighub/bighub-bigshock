@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Param, P
 import type { Response } from "express";
 import { z, type ZodType } from "zod";
 import { licenseBody, licenseListQuery } from "@bigstock/contracts";
+import { ApiKeyOrgRoute, ApiKeyScope } from "../api-access/api-key.decorators.js";
 import { SessionGuard } from "../auth/auth.guard.js";
 import { OrgGuard, type OrgRequest, RequirePermission } from "../organizations/org.guard.js";
 import { LicensingService } from "./licensing.service.js";
@@ -17,6 +18,7 @@ export class LicensingController {
   constructor(private readonly licensing: LicensingService) {}
 
   @Get("license-terms/current")
+  @ApiKeyScope("assets:read")
   @UseGuards(SessionGuard)
   async terms(@Req() req: OrgRequest) {
     const t = await this.licensing.currentTerms();
@@ -24,6 +26,7 @@ export class LicensingController {
   }
 
   @Post("organizations/:orgId/licenses")
+  @ApiKeyOrgRoute()
   @UseGuards(SessionGuard, OrgGuard)
   @RequirePermission("licenses:create")
   async license(
@@ -43,6 +46,7 @@ export class LicensingController {
   }
 
   @Get("organizations/:orgId/licenses")
+  @ApiKeyOrgRoute()
   @UseGuards(SessionGuard, OrgGuard)
   @RequirePermission("licenses:read")
   async list(@Query() query: Record<string, string>, @Req() req: OrgRequest) {
@@ -52,6 +56,7 @@ export class LicensingController {
   }
 
   @Post("organizations/:orgId/licenses/:grantId/download")
+  @ApiKeyOrgRoute()
   @HttpCode(200)
   @UseGuards(SessionGuard, OrgGuard)
   @RequirePermission("licenses:create")

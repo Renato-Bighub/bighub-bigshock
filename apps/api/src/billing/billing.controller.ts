@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, Get, Headers, HttpCode, Post, Qu
 import type { RawBodyRequest } from "@nestjs/common";
 import type { Request } from "express";
 import { z, type ZodType } from "zod";
+import { ApiKeyOrgRoute } from "../api-access/api-key.decorators.js";
 import { SessionGuard } from "../auth/auth.guard.js";
 import { OrgGuard, type OrgRequest, RequirePermission } from "../organizations/org.guard.js";
 import { CreditsService } from "./credits.service.js";
@@ -44,6 +45,7 @@ export class BillingController {
   }
 
   @Get("organizations/:orgId/credits/ledger")
+  @ApiKeyOrgRoute()
   @UseGuards(SessionGuard, OrgGuard)
   @RequirePermission("credits:read")
   async ledger(@Query() query: Record<string, string>, @Req() req: OrgRequest) {
