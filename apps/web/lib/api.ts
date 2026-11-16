@@ -19,9 +19,18 @@ const MESSAGES: Record<string, string> = {
   subscription_exists: "A organização já tem uma assinatura. Use \"Fazer upgrade\" ou \"Mudar no próximo ciclo\".",
   no_active_subscription: "Não existe uma assinatura ativa.",
   use_portal: "Para mudar o intervalo de faturação use o portal de faturação.",
+  ai_unavailable: "A geração por IA não está disponível neste ambiente.",
+  cost_changed: "O custo mudou. Reveja o valor e confirme novamente.",
+  ai_transform_not_allowed: "Este ativo não permite transformação por IA.",
+  content_rejected: "O pedido foi recusado pela política de conteúdo. Os créditos foram devolvidos.",
+  generation_failed: "A geração falhou. Os créditos foram devolvidos.",
+  provider_unavailable: "O serviço de IA está indisponível. Os créditos foram devolvidos.",
+  enqueue_failed: "Não foi possível iniciar a geração. Os créditos foram devolvidos.",
   no_billing_account: "Ainda não existe conta de faturação.",
   invalid_invitation: "Convite inválido, expirado ou destinado a outro email. Inicie sessão com o email convidado.",
 };
+
+export const codeMessage = (code: string | null | undefined) => (code ? (MESSAGES[code] ?? code) : "");
 
 export const errorMessage = (e: unknown) =>
   e instanceof ApiError ? (MESSAGES[e.code] ?? e.message) : "Não foi possível contactar o servidor.";

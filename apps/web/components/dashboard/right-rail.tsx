@@ -17,10 +17,10 @@ function Card({ icon, title, children }: { icon: React.ReactNode; title: string;
 }
 
 const ACTIONS = [
-  { icon: Sparkles, label: "Gerar nova imagem com IA" },
-  { icon: Code2, label: "Integrar via API" },
-  { icon: Plus, label: "Criar coleção" },
-  { icon: History, label: "Ver histórico de geração" },
+  { icon: Sparkles, label: "Gerar nova imagem com IA", href: "/gerar" },
+  { icon: Code2, label: "Integrar via API", href: null },
+  { icon: Plus, label: "Criar coleção", href: null },
+  { icon: History, label: "Ver histórico de geração", href: "/historico" },
 ];
 
 export function RightRail({ orgName, role, credits, planName, recent }: { orgName: string; role: string; credits: number | null; planName: string | null; recent: LicenseDto[] }) {
@@ -49,11 +49,15 @@ export function RightRail({ orgName, role, credits, planName, recent }: { orgNam
 
       <Card icon={<Zap size={21} className="text-brand" />} title="Ações rápidas">
         <div className="flex flex-col gap-[7px]">
-          {ACTIONS.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2.5 rounded-lg border border-[#e3e6ea] px-3 py-2.5 text-[13px] text-[#16191d] opacity-60">
-              <Icon size={18} /> <span className="flex-1">{label}</span> <ChevronRight size={18} />
-            </div>
-          ))}
+          {ACTIONS.map(({ icon: Icon, label, href }) => {
+            const inner = (<><Icon size={18} /> <span className="flex-1">{label}</span> <ChevronRight size={18} /></>);
+            const cls = "flex items-center gap-2.5 rounded-lg border border-[#e3e6ea] px-3 py-2.5 text-[13px] text-[#16191d]";
+            return href ? (
+              <Link key={label} href={href} className={`${cls} hover:border-brand`}>{inner}</Link>
+            ) : (
+              <div key={label} className={`${cls} opacity-60`}>{inner}</div>
+            );
+          })}
         </div>
       </Card>
 

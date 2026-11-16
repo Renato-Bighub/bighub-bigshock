@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput & node --watch dist/main.js",
-    "start": "node dist/main.js",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput & STORAGE_DIR=${STORAGE_DIR:-../api/.storage} node --watch dist/main.js",
+    "start": "STORAGE_DIR=${STORAGE_DIR:-../api/.storage} node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

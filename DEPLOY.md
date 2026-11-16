@@ -55,6 +55,21 @@ Webhook a criar no Stripe: `POST https://<api>/v1/webhooks/stripe` com os evento
 Os preços são criados no Stripe automaticamente (por `lookup_key`) a partir da tabela `plans`; a nossa BD é a fonte única.
 Ative no Stripe o **Billing Portal** (Settings → Billing → Customer portal) para o botão "Gerir faturação".
 
+## IA (geração de imagens) e worker
+
+A API só **enfileira**; quem gera é o worker (`apps/worker`), um processo de longa duração que **não corre na Vercel**.
+Sem `REDIS_URL` ou sem fornecedor configurado, a API responde 503 `ai_unavailable` e **não reserva créditos**.
+
+**API (Vercel)**: `REDIS_URL` (TCP/TLS, ex.: Upstash `rediss://…`), `AI_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_IMAGE_MODEL` (opcional).
+
+**Worker** (Railway, Fly.io ou Render): construa com `apps/worker/Dockerfile` (contexto = raiz do repositório) e defina as
+mesmas variáveis **mais** `APP_DATABASE_URL`, `S3_*` e `REDIS_URL`. O worker precisa de acesso ao mesmo S3/R2 e ao mesmo Redis da API.
+Em dev: `redis-server`, `pnpm dev:api` e `pnpm dev:worker` (partilham `apps/api/.storage`).
+
+Conformidade (AI Act art. 50): cada geração regista fornecedor e modelo em `ai_jobs`, e os PNG levam metadados XMP/IPTC
+(`DigitalSourceType = trainedAlgorithmicMedia`) + `tEXt` (`AIGenerated`, `AIProvider`, `AIModel`, `AIJobId`). **Não é uma assinatura C2PA.**
+A interface sinaliza "Gerado por IA". Imagens geradas são privadas da organização e nunca entram no catálogo.
+
 ## Primeiro deploy
 
 1. Crie o banco e um papel de aplicação sem superuser; guarde o URL direto como secret `DATABASE_URL_MIGRATE`
