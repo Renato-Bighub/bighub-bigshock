@@ -100,5 +100,5 @@ pode demorar até 15 s a valer em todas as instâncias. Não há SDK ainda (V1.1
 ## Deploy pela CLI
 
 `vercel deploy --prod` envia a árvore de trabalho (não só o que está commitado). O `.vercelignore` na raiz
-exclui as imagens demonstrativas sem direitos (`apps/web/public/images/*.jpg`), o `.storage` e os `.env*`.
+exclui o `.storage` e os `.env*`. As miniaturas demonstrativas de `apps/web/public/images` (fora do git, sem direitos de uso comercial) seguem no deploy pela CLI por decisão do dono do produto; um deploy pelo Git não as inclui.
 Para deploys automáticos a cada push use `vercel git connect` em cada projeto.

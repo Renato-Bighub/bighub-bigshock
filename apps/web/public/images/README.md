@@ -9,3 +9,9 @@ fundos em gradiente.
 
 Antes do lançamento, o catálogo deve vir de ativos BIGstock com direitos verificados
 (`rights_records.verified_at`) servidos por CDN.
+
+## Produção
+
+Por decisão do dono do produto, o deploy pela CLI da Vercel **inclui** estas miniaturas para que o dashboard mostre imagens
+enquanto o catálogo real (S3/R2) não está ligado. Deploys automáticos pelo Git **não** as incluem (não estão no repositório).
+Substitua-as por ativos com direitos verificados antes do lançamento comercial.

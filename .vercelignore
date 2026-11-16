@@ -1,6 +1,5 @@
-# Miniaturas demonstrativas sem direitos: nunca vão para a Vercel
-apps/web/public/images/*.jpg
-apps/web/public/images/*.png
+# As miniaturas demonstrativas (apps/web/public/images) SÃO enviadas por deploy via CLI a pedido do dono do produto;
+# continuam fora do git. Substituir por ativos com direitos verificados antes do lançamento.
 .storage
 .env*
 !.env.example
