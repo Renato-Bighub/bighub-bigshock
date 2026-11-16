@@ -9,7 +9,7 @@ export default async function Dashboard() {
   const [creditsRes, recentRes] = org
     ? await Promise.all([getBilling(org.id), get<{ data: LicenseDto[] }>(`/v1/organizations/${org.id}/licenses?limit=3`)])
     : [null, null];
-  const credits = creditsRes?.data.credits.available ?? null;
+  const credits = creditsRes?.data.credits ?? null;
   const planName = creditsRes?.data.plan_name ?? null;
   return (
     <div className="mx-auto grid max-w-[1880px] items-start gap-x-[23px] gap-y-[23px] px-[19px] pt-[18px] pb-[30px] xl:grid-cols-[minmax(0,1fr)_338px]">

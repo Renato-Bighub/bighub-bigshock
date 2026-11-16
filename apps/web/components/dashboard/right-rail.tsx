@@ -23,7 +23,7 @@ const ACTIONS = [
   { icon: History, label: "Ver histórico de geração", href: "/historico" },
 ];
 
-export function RightRail({ orgName, role, credits, planName, recent }: { orgName: string; role: string; credits: number | null; planName: string | null; recent: LicenseDto[] }) {
+export function RightRail({ orgName, role, credits, planName, recent }: { orgName: string; role: string; credits: { available: number; plan: number; plan_expires_at: string | null; own: number } | null; planName: string | null; recent: LicenseDto[] }) {
   const fmt = (n: number) => new Intl.NumberFormat("pt-PT").format(n);
   return (
     <aside className="flex min-w-0 flex-col gap-[13px]">
@@ -40,8 +40,20 @@ export function RightRail({ orgName, role, credits, planName, recent }: { orgNam
       </Card>
 
       <Card icon={<Coins size={21} className="text-brand" />} title="Créditos de IA">
-        <div className="my-2 font-heading text-[29px] font-extrabold tracking-[-0.055em]">{credits === null ? "—" : fmt(credits)}</div>
-        <div className="mb-[18px] text-[11px] text-[#343943]">Disponíveis</div>
+        <div className="my-2 font-heading text-[29px] font-extrabold tracking-[-0.055em]">{credits === null ? "—" : fmt(credits.available)}</div>
+        <div className="mb-3 text-[11px] text-[#343943]">Disponíveis no total</div>
+        {credits && (
+          <dl className="mb-[18px] space-y-1.5 rounded-lg bg-[#f6f7f9] px-3 py-2.5 text-[12px] text-[#343943]">
+            <div className="flex justify-between gap-2"><dt>Meus créditos</dt><dd className="font-bold">{fmt(credits.own)}</dd></div>
+            <div className="flex justify-between gap-2">
+              <dt>Do plano{planName ? ` ${planName}` : ""}</dt>
+              <dd className="font-bold">{fmt(credits.plan)}</dd>
+            </div>
+            {credits.plan > 0 && credits.plan_expires_at && (
+              <p className="pt-0.5 text-[11px] text-[#5b616c]">Os do plano expiram em {new Date(credits.plan_expires_at).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" })}.</p>
+            )}
+          </dl>
+        )}
         <Link href="/planos#creditos" className="flex min-h-[39px] w-full items-center justify-center gap-2 rounded-[9px] bg-brand text-[13px] font-extrabold text-white hover:bg-[#bd0024]">
           <ShoppingCart size={17} /> Comprar créditos
         </Link>

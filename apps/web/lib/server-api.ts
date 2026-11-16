@@ -21,7 +21,7 @@ export interface BillingSummary {
   plan_name: string;
   subscription: { status: string; interval: string; current_period_end: string; cancel_at_period_end: boolean; pending_plan_code: string | null } | null;
   downloads: { used: number; quota: number; window_end: string };
-  credits: { available: number; included_per_period: number };
+  credits: { available: number; included_per_period: number; plan: number; plan_expires_at: string | null; own: number };
   has_billing_account: boolean;
 }
 export const getBilling = (orgId: string) => get<{ data: BillingSummary }>(`/v1/organizations/${orgId}/billing`);

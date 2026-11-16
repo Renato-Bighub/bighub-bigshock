@@ -44,7 +44,7 @@ export class BillingService {
   }
 
   async summary(orgId: string) {
-    const credits = await this.credits.balance(orgId);
+    const [credits, breakdown] = await Promise.all([this.credits.balance(orgId), this.credits.breakdown(orgId)]);
     return withTenant(this.db, orgId, async (tx) => {
       const ent = await this.entitlements.forOrganization(tx, orgId);
       const used = await this.entitlements.downloadsUsed(tx, orgId, ent);
@@ -63,7 +63,7 @@ export class BillingService {
             }
           : null,
         downloads: { used, quota: ent.downloadQuota, window_end: ent.windowEnd.toISOString() },
-        credits: { available: credits, included_per_period: ent.includedCredits },
+        credits: { available: credits, included_per_period: ent.includedCredits, plan: breakdown.plan, plan_expires_at: breakdown.plan_expires_at?.toISOString() ?? null, own: breakdown.own },
         has_billing_account: Boolean(account),
       };
     });

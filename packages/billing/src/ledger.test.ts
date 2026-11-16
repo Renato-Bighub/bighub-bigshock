@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   availableBalance,
+  balanceBreakdown,
   buildReleaseEntries,
   buildReserveEntries,
   InsufficientCreditsError,
@@ -62,5 +63,17 @@ describe("credit ledger", () => {
     const g = grant({ amount: 100 });
     const r1 = materialize(buildReserveEntries(org, "a", planReservation([g], 70, now)));
     expect(() => planReservation([g, ...r1], 40, now)).toThrow(InsufficientCreditsError);
+  });
+
+  it("separa créditos do plano dos créditos próprios e ignora expirados", () => {
+    const entries = [
+      grant({ balanceType: "promotional", amount: 100 }),
+      grant({ balanceType: "purchased", amount: 50, expiresAt: days(30) }),
+      grant({ balanceType: "subscription", amount: 500, expiresAt: days(15) }),
+      grant({ balanceType: "subscription", amount: 300, expiresAt: days(-1) }), // expirado
+    ];
+    const b = balanceBreakdown(entries, now);
+    expect(b).toEqual({ plan: 500, plan_expires_at: days(15), own: 150 });
+    expect(b.plan + b.own).toBe(availableBalance(entries, now));
   });
 });

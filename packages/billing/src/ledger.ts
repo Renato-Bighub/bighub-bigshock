@@ -52,6 +52,18 @@ export function availableBalance(entries: readonly CreditEntry[], now: Date): nu
   return grantRemaining(entries, now).reduce((s, r) => s + r.remaining, 0);
 }
 
+/** Saldo disponível separado: créditos do plano (não acumulam, expiram no fim do período) e créditos próprios (promocionais, comprados, empresariais). */
+export function balanceBreakdown(entries: readonly CreditEntry[], now: Date) {
+  const rem = grantRemaining(entries, now);
+  const plan = rem.filter((r) => r.grant.balanceType === "subscription");
+  const expiries = plan.map((r) => r.grant.expiresAt).filter((d): d is Date => d !== null).sort((a, b) => a.getTime() - b.getTime());
+  return {
+    plan: plan.reduce((s, r) => s + r.remaining, 0),
+    plan_expires_at: expiries[0] ?? null,
+    own: rem.filter((r) => r.grant.balanceType !== "subscription").reduce((s, r) => s + r.remaining, 0),
+  };
+}
+
 export interface Allocation {
   sourceEntryId: string;
   balanceType: BalanceType;

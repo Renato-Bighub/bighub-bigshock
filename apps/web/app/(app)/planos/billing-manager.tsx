@@ -87,7 +87,7 @@ export function BillingManager({ orgId, canManage, summary, catalog, invoices, c
         <div>
           <p className="text-xs font-semibold text-nav/60">Créditos de IA disponíveis</p>
           <p className="font-heading text-2xl font-extrabold">{num(summary.credits.available)}</p>
-          <p className="mt-1 text-xs text-nav/60">Incluídos no plano: {num(summary.credits.included_per_period)} por período</p>
+          <p className="mt-1 text-xs text-nav/60">Meus: {num(summary.credits.own)} · Do plano: {num(summary.credits.plan)} (inclui {num(summary.credits.included_per_period)} por período)</p>
         </div>
         <div>
           <p className="text-xs font-semibold text-nav/60">Licenças neste período</p>

@@ -12,6 +12,7 @@ import {
 } from "@bigstock/database";
 import {
   availableBalance,
+  balanceBreakdown,
   buildConsumeEntries,
   buildReleaseEntries,
   buildReserveEntries,
@@ -42,6 +43,10 @@ export class CreditsService {
 
   async balance(orgId: string): Promise<number> {
     return withTenant(this.db, orgId, async (tx) => availableBalance(await this.load(tx, orgId), new Date()));
+  }
+
+  async breakdown(orgId: string) {
+    return withTenant(this.db, orgId, async (tx) => balanceBreakdown(await this.load(tx, orgId), new Date()));
   }
 
   /** Concede créditos. Idempotente por (organização, idempotencyKey): repetir não duplica. */
